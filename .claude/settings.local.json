@@ -1,7 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(timeout 8 curl -sS -o /dev/null -w \"%{http_code}\" https://registry.npmjs.org/)",
+      "Bash(corepack enable *)",
+      "Bash(corepack prepare *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm -s exec tsc -b packages/core)",
+      "Bash(pnpm -s --filter @ozpb/core exec vitest run)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(pnpm -s exec tsc -b packages/stellar)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/scval.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/scval.test.ts --coverage)",
+      "Bash(find . -path '*smart_account/storage.rs')",
+      "Bash(sed -n '1,120p' packages/accounts/src/smart_account/storage.rs)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/keys.test.ts src/auth.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/rpc.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/xdr.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run)",
+      "Bash(python3 -)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/history.test.ts)"
     ]
   }
 }

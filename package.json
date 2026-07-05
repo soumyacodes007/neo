@@ -1,0 +1,27 @@
+{
+  "name": "oz-policy-builder",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deterministic policy-engineering toolkit for OpenZeppelin Stellar smart accounts (MCP).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "clean": "tsc -b --clean"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8",
+    "fast-check": "^3.23.2"
+  }
+}
