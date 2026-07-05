@@ -1,9 +1,9 @@
 {
-  "name": "@ozpb/stellar",
+  "name": "@ozpb/plans",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Stellar integration: RPC client, XDR decode pipeline, ScVal bridge, ledger-key construction, auth digest. The only package permitted to touch @stellar/stellar-sdk.",
+  "description": "Verification orchestration (D3) + install/revocation plan construction (E1/E2) + deterministic explain renderer (E3).",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@ozpb/core": "workspace:*",
-    "@stellar/stellar-sdk": "^13.1.0",
-    "zod": "^3.24.1"
+    "@ozpb/stellar": "workspace:*",
+    "@stellar/stellar-sdk": "^13.1.0"
   }
 }

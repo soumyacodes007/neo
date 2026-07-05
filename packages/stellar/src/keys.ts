@@ -281,6 +281,18 @@ export function decodeContractDataVal(entryXdrB64: string): xdr.ScVal {
   return data.contractData().val();
 }
 
+/** Extract the WASM byte code from a ContractCode ledger entry (base64 LedgerEntryData). */
+export function decodeContractCodeWasm(entryXdrB64: string): Buffer {
+  let data: xdr.LedgerEntryData;
+  try {
+    data = xdr.LedgerEntryData.fromXDR(entryXdrB64, "base64");
+  } catch (cause) {
+    throw new ToolError("E_DATA_MALFORMED_XDR", "could not decode LedgerEntryData", { cause });
+  }
+  if (data.switch().name !== "contractCode") malformed("ledger entry (expected contractCode)");
+  return Buffer.from(data.contractCode().code());
+}
+
 /** WASM hash (hex) of a contract from its instance ScVal, or null for a SAC/token. */
 export function instanceExecutableWasmHash(instanceVal: xdr.ScVal): WasmHash | null {
   if (instanceVal.switch().name !== "scvContractInstance") malformed("contract instance");

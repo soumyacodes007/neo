@@ -1,4 +1,6 @@
 export * from "./registry.js";
+export * from "./interface-lookup.js";
+export * from "./parse-intent.js";
 export * from "./inspect-account.js";
 export * from "./inspect-rule.js";
 export * from "./lookup-transactions.js";
