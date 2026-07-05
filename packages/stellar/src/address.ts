@@ -36,6 +36,15 @@ export function assertAccountId(s: string): AccountId {
   return toAccountId(s);
 }
 
+/** Assert `s` is a contract OR account address (a `Delegated` signer may be either). */
+export function assertAddress(s: string): ContractId | AccountId {
+  if (StrKey.isValidContract(s)) return toContractId(s);
+  if (StrKey.isValidEd25519PublicKey(s)) return toAccountId(s);
+  throw new ToolError("E_INPUT_ADDRESS_KIND", `expected a contract or account address, got: ${s}`, {
+    details: { value: s },
+  });
+}
+
 export type AddressKind = "contract" | "account" | "muxed";
 
 export function addressKind(s: string): AddressKind | "unknown" {

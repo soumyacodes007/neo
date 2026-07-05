@@ -26,7 +26,7 @@ import {
   type WasmHash,
 } from "@ozpb/core";
 import { createHash } from "node:crypto";
-import { assertContractId } from "./address.js";
+import { assertAddress, assertContractId } from "./address.js";
 
 // Soroban durability is only TEMPORARY | PERSISTENT. The contract-instance
 // entry (which holds the scalar counters in its storage map) uses PERSISTENT
@@ -222,7 +222,8 @@ function decodeSignerValue(scv: xdr.ScVal): SignerModel {
   switch (tag) {
     case "Delegated": {
       if (arm[1] === undefined) malformed("Delegated(address)");
-      return { type: "delegated", address: assertContractId(Address.fromScVal(arm[1]).toString()) };
+      // A delegated signer may be a contract (C…) or an account (G…) address.
+      return { type: "delegated", address: assertAddress(Address.fromScVal(arm[1]).toString()) };
     }
     case "External": {
       if (arm[1] === undefined || arm[2] === undefined) malformed("External(verifier,key)");

@@ -52,6 +52,15 @@ export class MergingHistoryProvider {
     this.#providers = [...providers].sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
   }
 
+  /** Fetch one tx by hash, trying providers in priority order (RPC first). */
+  async txByHash(hash: TxHash): Promise<RawTx | null> {
+    for (const provider of this.#providers) {
+      const tx = await provider.txByHash(hash);
+      if (tx !== null) return tx;
+    }
+    return null;
+  }
+
   async coverageUnion(): Promise<{ oldest: LedgerSeq; newest: LedgerSeq }> {
     const covs = await Promise.all(this.#providers.map((p) => p.coverage()));
     const oldest = Math.min(...covs.map((c) => c.oldestLedger)) as LedgerSeq;

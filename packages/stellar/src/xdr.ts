@@ -205,6 +205,50 @@ export function deriveTokenDeltas(
   return deltas;
 }
 
+export interface DecodedMeta {
+  events: DecodedEvent[];
+  success: boolean;
+}
+
+/**
+ * FN-ST.12 — extract Soroban contract events from transaction meta. Version-
+ * switches on `TransactionMeta`; an unsupported version is an explicit error
+ * with a deep-history suggestion (EC-X03), never a silent drop.
+ */
+export function decodeMeta(metaXdr: string | undefined, success: boolean): DecodedMeta {
+  if (metaXdr === undefined) return { events: [], success };
+  let meta: xdr.TransactionMeta;
+  try {
+    meta = xdr.TransactionMeta.fromXDR(metaXdr, "base64");
+  } catch (cause) {
+    throw new ToolError("E_DATA_MALFORMED_XDR", "could not decode TransactionMeta", { cause });
+  }
+  const version = meta.switch();
+  if (version !== 3) {
+    // This SDK's protocol tops out at meta v3; older/newer versions need a
+    // provider that reconstructs Soroban detail.
+    throw new ToolError("E_DATA_META_VERSION", `unsupported TransactionMeta v${String(version)} (EC-X03)`, {
+      suggestion: "use a deep-history provider (Hubble) that reconstructs Soroban detail",
+    });
+  }
+  const soroban = meta.v3().sorobanMeta() ?? undefined;
+  const events: DecodedEvent[] = (soroban?.events() ?? []).map(decodeContractEvent);
+  return { events, success };
+}
+
+function decodeContractEvent(ev: xdr.ContractEvent): DecodedEvent {
+  const body = ev.body().v0();
+  const contractHash = ev.contractId();
+  const contract = contractHash === undefined || contractHash === null
+    ? undefined
+    : assertContractId(Address.contract(Buffer.from(contractHash)).toString());
+  return {
+    ...(contract !== undefined ? { contract } : {}),
+    topics: body.topics().map(toScValJson),
+    data: toScValJson(body.data()),
+  };
+}
+
 // --- helpers --------------------------------------------------------------
 
 function addressTopic(t: ScValJson | undefined): string | undefined {

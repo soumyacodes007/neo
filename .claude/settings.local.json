@@ -21,7 +21,12 @@
       "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/xdr.test.ts)",
       "Bash(pnpm -s --filter @ozpb/stellar exec vitest run)",
       "Bash(python3 -)",
-      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/history.test.ts)"
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/history.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/inspect-account.test.ts)",
+      "Bash(rm -f packages/*/tsconfig.tsbuildinfo)",
+      "Bash(pnpm -s exec tsc -b)",
+      "Bash(node --input-type=module -e 'import {Networks} from \"@stellar/stellar-sdk\"; console.log\\(Object.keys\\(Networks\\).join\\(\",\"\\)\\)')",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/inspect-rule.test.ts)"
     ]
   }
 }
