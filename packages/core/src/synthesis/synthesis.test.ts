@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PolicyIntent } from "../schemas/policy-intent.js";
+import { AuthContextSet } from "../schemas/auth-context.js";
 import { CandidateRuleset } from "../schemas/constraint.js";
 import { toXdrBase64, type XdrBase64 } from "../primitives.js";
 import type { PolicyClassification } from "../schemas/context-rule.js";
@@ -73,6 +74,55 @@ describe("synthesizeRuleset (C1)", () => {
     const b = synthesizeRuleset({ intent: tier1Intent(), intentHash: "x" }, { currentLedger: 1000 });
     expect(a.ruleset_hash).toBe(b.ruleset_hash);
     expect(a.ruleset_hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("T-C1.1-2: evidence adds observed sub-contexts without over-generalizing args", () => {
+    const evidence = AuthContextSet.parse({
+      schema_version: "1",
+      account: C_ACCOUNT,
+      network: "testnet",
+      polarity: "positive",
+      contexts: [
+        {
+          context_type: { kind: "call_contract", address: C_USDC },
+          contract: C_USDC,
+          fn_name: "transfer",
+          arity: 1,
+          depth: "sub",
+          arg_summary: [
+            {
+              index: 0,
+              sc_type: "scvI128",
+              distinct_values_scval_b64: ["AAAAAA=="],
+              observed_count: 1,
+              numeric_range: { min: "500", max: "500" },
+            },
+          ],
+          occurrences: [
+            {
+              tx_hash: "11".repeat(32),
+              ledger: 2000,
+              context_index: 0,
+              depth: "sub",
+              successful: true,
+              provenance: { kind: "observed_tx", tx_hash: "11".repeat(32), context_index: 0 },
+            },
+          ],
+        },
+      ],
+      window: { from_ledger: 2000, to_ledger: 2000 },
+      evidence_hash: "22".repeat(32),
+    });
+    const rs = synthesizeRuleset({ intent: tier1Intent(), intentHash: "x", evidence }, { currentLedger: 1000 });
+    const usdc = rs.rules.find((r) => r.context_type.kind === "call_contract" && r.context_type.address === C_USDC)!;
+    expect(usdc.constraints.find((c) => c.kind === "func_allowlist")).toMatchObject({ functions: ["transfer"] });
+    expect(usdc.constraints.find((c) => c.kind === "arg_predicate")).toMatchObject({
+      fn: "transfer",
+      arg_index: 0,
+      op: "eq",
+      values_scval_b64: ["AAAAAA=="],
+    });
+    expect(rs.based_on.evidence_hash).toBe(evidence.evidence_hash);
   });
 });
 

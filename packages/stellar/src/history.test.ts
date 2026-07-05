@@ -37,6 +37,9 @@ class FakeProvider implements HistoryProvider {
   txByHash(): Promise<RawTx | null> {
     return Promise.resolve(null);
   }
+  async *txsBySigner(params: { from: LedgerSeq; to: LedgerSeq }): AsyncIterable<RawTx> {
+    for (const t of this.txs) if (t.ledger >= params.from && t.ledger <= params.to) yield t;
+  }
   async *txsByContract(params: { from: LedgerSeq; to: LedgerSeq }): AsyncIterable<RawTx> {
     for (const t of this.txs) if (t.ledger >= params.from && t.ledger <= params.to) yield t;
   }
@@ -76,5 +79,14 @@ describe("MergingHistoryProvider (FN-ST.8)", () => {
     });
     expect(res.partial).toBe(true);
     expect(res.windowCovered).toEqual({ from: 900, to: 1000 });
+  });
+
+  it("supports signer-window lookup with the same provider priority", async () => {
+    const rpc = new FakeProvider("rpc", { oldest: 900, newest: 1000 }, [raw(H2, 950, "rpc")]);
+    const hubble = new FakeProvider("hubble", { oldest: 0, newest: 1000 }, [raw(H1, 100, "hubble"), raw(H2, 950, "hubble")]);
+    const merged = new MergingHistoryProvider([hubble, rpc]);
+    const res = await merged.txsBySigner({ account: C, from: toLedgerSeq(0), to: toLedgerSeq(1000) });
+    expect(res.txs.map((t) => t.hash)).toEqual([H1, H2]);
+    expect(res.txs.find((t) => t.hash === H2)?.provider).toBe("rpc");
   });
 });

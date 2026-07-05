@@ -3,6 +3,7 @@ export * from "./signer.js";
 export * from "./context-rule.js";
 export * from "./account-snapshot.js";
 export * from "./transaction-trace.js";
+export * from "./auth-context.js";
 export * from "./policy-intent.js";
 export * from "./constraint.js";
 export * from "./interface-spec.js";

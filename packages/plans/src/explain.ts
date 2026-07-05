@@ -7,10 +7,11 @@
  * form; addresses are never truncated (EC-T01/T06/S10).
  */
 import { canonicalHash, type JsonValue } from "@ozpb/core";
-import type { BypassReport, CandidateRuleset, PolicyBinding, RiskReport } from "@ozpb/core";
+import type { AccountSnapshot, BypassReport, CandidateRuleset, PolicyBinding, RiskReport } from "@ozpb/core";
 
 export interface ExplainInput {
   ruleset: CandidateRuleset;
+  accountSnapshot?: AccountSnapshot;
   bypassReport?: BypassReport;
   /** Ledger→approx wall clock base; if absent, expiry is shown in ledgers only. */
   nowLedger?: number;
@@ -57,6 +58,11 @@ export function explainPolicy(input: ExplainInput): ExplainResult {
     lines.push("");
   }
 
+  if (input.accountSnapshot !== undefined) {
+    lines.push("## Policy diff", "");
+    lines.push(renderPolicyDiff({ before: input.accountSnapshot, ruleset }), "");
+  }
+
   lines.push("## Residual risks");
   if (riskReport.residual_risks.length === 0) lines.push("- None mapped.");
   for (const r of riskReport.residual_risks) {
@@ -65,6 +71,23 @@ export function explainPolicy(input: ExplainInput): ExplainResult {
   lines.push("", riskReport.expiry_summary, "", riskReport.revocation_summary);
 
   return { markdown: lines.join("\n"), riskReport };
+}
+
+export function renderPolicyDiff(input: { before: AccountSnapshot; ruleset: CandidateRuleset }): string {
+  const rows: string[] = ["| Change | Rule | Scope | Status |", "|---|---|---|---|"];
+  for (const rule of input.before.rules) {
+    rows.push(`| unchanged | ${fence(rule.name)} (#${String(rule.id)}) | ${describeContextType(rule.context_type)} | ${rule.status} |`);
+  }
+  for (const rule of input.ruleset.rules) {
+    rows.push(`| add | ${fence(rule.name)} | ${describeContextType(rule.context_type)} | pending install |`);
+  }
+  for (const update of input.ruleset.updates) {
+    rows.push(`| expire | #${String(update.rule_id)} | old rule | set valid_until=${String(update.set_valid_until)} |`);
+  }
+  for (const removal of input.ruleset.removals) {
+    rows.push(`| remove | #${String(removal.rule_id)} | old rule | ${fence(removal.reason)} |`);
+  }
+  return rows.join("\n");
 }
 
 function buildRiskReport(input: ExplainInput): RiskReport {
@@ -133,6 +156,12 @@ function describeBinding(b: PolicyBinding): string {
     case "codegen":
       return `custom generated policy (${b.binding.codegen_ref})`;
   }
+}
+
+function describeContextType(context: CandidateRuleset["rules"][number]["context_type"] | AccountSnapshot["rules"][number]["context_type"]): string {
+  if (context.kind === "default") return "Default";
+  if (context.kind === "call_contract") return `CallContract(${context.address})`;
+  return `CreateContract(${context.wasm_hash})`;
 }
 
 function minExpiry(ruleset: CandidateRuleset): number {

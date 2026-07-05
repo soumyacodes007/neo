@@ -6,4 +6,5 @@ export * from "./xdr.js";
 export * from "./rpc.js";
 export * from "./history.js";
 export * from "./snapshot.js";
+export * from "./encode.js";
 export * from "./tools/index.js";

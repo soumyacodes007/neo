@@ -13,6 +13,10 @@
     "build": "tsc -b",
     "typecheck": "tsc -b --pretty",
     "test": "vitest run",
+    "testnet:deploy-fixture": "wsl bash -lc 'bash scripts/deploy-oz-testnet-fixture.sh'",
+    "testnet:phase5-smoke": "node scripts/phase5-testnet-smoke.mjs",
+    "testnet:phase5-auth-tx": "node scripts/phase5-auth-tx-e2e.mjs",
+    "docker:sandbox-smoke": "wsl bash -lc 'bash scripts/docker-sandbox-smoke.sh'",
     "test:watch": "vitest",
     "lint": "eslint .",
     "clean": "tsc -b --clean"

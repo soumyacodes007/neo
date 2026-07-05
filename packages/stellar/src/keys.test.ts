@@ -77,6 +77,17 @@ describe("decodeInstanceScalars (FN-ST.15)", () => {
     });
   });
 
+  it("treats missing NextPolicyId as zero before any policy is registered", () => {
+    const v = buildInstance({ NextId: 1, Count: 1, NextSignerId: 1 });
+    expect(decodeInstanceScalars(v)).toEqual({
+      present: true,
+      nextId: 1,
+      count: 1,
+      nextSignerId: 1,
+      nextPolicyId: 0,
+    });
+  });
+
   it("reports present=false for a non-OZ instance (EC-A03 fingerprint)", () => {
     const v = buildInstance({ SomethingElse: 1 });
     expect(decodeInstanceScalars(v).present).toBe(false);

@@ -1,0 +1,65 @@
+{
+  "schema_version": "1",
+  "network": "testnet",
+  "created_at": "2026-07-05T13:25:31.521Z",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+  "signer": {
+    "type": "external",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "key_data_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29"
+  },
+  "target": {
+    "contract": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+    "fn": "batch_add_signer",
+    "description": "real smart-account-authorized fixture call with an empty signer addition"
+  },
+  "tx_hash": "168f87947fdff2193c145feae292936f8f1989f1df9b080d1c6d696142e31653",
+  "tx_status": "SUCCESS",
+  "ledger": 3448529,
+  "auth_valid_until_ledger": 3449528,
+  "latest_smoke_report": {
+    "path": "fixtures/testnet/phase5-smoke-report.json",
+    "plan_hash": "c14a476b22f8fe2cb5fca64d14c688f7af562a1a8df93562c856264f06d51ecd",
+    "snapshot_hash": "519f5b243daec1dea4b38eb6e10afd1a92ca0ef0dc2cc43b72e8113595e93910"
+  },
+  "wasm_hashes": {
+    "account": "4a50a65e82b2127b02af8c03e16c335e94aa048653093b6bf81b6c11105bab93",
+    "ed25519_verifier": "197c8fc584b38fb08c4b2a21544eac0b036d8bee0339685f58e38291d2114c93",
+    "threshold_policy": "dceed5cb26885849481e693efe9bc0db46c662b604d1d0f750c17cdb5e9777af"
+  },
+  "pipeline": {
+    "trace": {
+      "tx_hash": "168f87947fdff2193c145feae292936f8f1989f1df9b080d1c6d696142e31653",
+      "successful": true,
+      "meta_decode_status": "fallback_envelope_only_sdk_meta_v4",
+      "auth_entries": 1,
+      "operations": 1
+    },
+    "evidence": {
+      "evidence_hash": "2e29e391fcb5af7cb134169cb3abf106c752eaf1b834caa901d4b7738f635e04",
+      "context_count": 1,
+      "contexts": [
+        {
+          "contract": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+          "fn_name": "batch_add_signer",
+          "arity": 2,
+          "depth": "root",
+          "observed_args": 2
+        }
+      ]
+    },
+    "ruleset": {
+      "ruleset_hash": "7e5427808c399ac2d16528846d76e8a2e0014899dfb5a4fed0827c8f931431ac",
+      "rule_count": 1,
+      "unsatisfied_count": 0
+    },
+    "bypass": {
+      "report_hash": "51e5f2bcfa945cfd3770f868e3ed2e406eaa65417a66c08c226e23ebe59ffbba",
+      "bypass_count": 2,
+      "unknown_count": 0,
+      "exhaustive": true
+    }
+  }
+}

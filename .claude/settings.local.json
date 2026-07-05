@@ -28,7 +28,9 @@
       "Bash(node --input-type=module -e 'import {Networks} from \"@stellar/stellar-sdk\"; console.log\\(Object.keys\\(Networks\\).join\\(\",\"\\)\\)')",
       "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/inspect-rule.test.ts)",
       "Bash(pnpm -s --filter @ozpb/core exec vitest run src/synthesis/synthesis.test.ts)",
-      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/interface-lookup.test.ts src/tools/parse-intent.test.ts)"
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/interface-lookup.test.ts src/tools/parse-intent.test.ts)",
+      "Bash(pnpm -s exec tsc -b packages/plans)",
+      "Bash(pnpm -s --filter @ozpb/plans exec vitest run)"
     ]
   }
 }

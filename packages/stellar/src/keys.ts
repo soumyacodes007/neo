@@ -149,7 +149,9 @@ export function decodeInstanceScalars(instanceVal: xdr.ScVal): InstanceScalars {
   }
   const present =
     scalars.has("NextId") && scalars.has("Count") &&
-    scalars.has("NextSignerId") && scalars.has("NextPolicyId");
+    // The contract reads these with unwrap_or(0). A freshly deployed account
+    // with no policies may not have NextPolicyId materialized yet.
+    scalars.has("NextSignerId");
   return {
     present,
     nextId: scalars.get("NextId") ?? 0,

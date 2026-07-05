@@ -1,0 +1,81 @@
+{
+  "fixture": {
+    "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235"
+  },
+  "rpc": {
+    "url": "https://soroban-testnet.stellar.org",
+    "latest_ledger": 3448170
+  },
+  "snapshot": {
+    "hash": "519f5b243daec1dea4b38eb6e10afd1a92ca0ef0dc2cc43b72e8113595e93910",
+    "rule_count": 1,
+    "admin_paths": [
+      0
+    ],
+    "rules": [
+      {
+        "id": 0,
+        "name": "multisig",
+        "context_type": {
+          "kind": "default"
+        },
+        "signer_count": 1,
+        "policy_count": 0,
+        "privilege": "admin-equivalent",
+        "status": "active"
+      }
+    ]
+  },
+  "ruleset": {
+    "hash": "a9b6e8ee176c26ad9672386582832b6fdc2100bb846ad4c76bc4f4d29bf98fed",
+    "generated_rules": 1,
+    "update_count": 1
+  },
+  "bypass": {
+    "hash": "45c4d2124f8e024c47fd765395f6236e835e2e542ee334e094115d668324aafc",
+    "bypass_count": 3,
+    "findings": [
+      {
+        "rule_id": 0,
+        "context": {
+          "kind": "call_contract",
+          "target": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO"
+        },
+        "recommendation": "expire_rule"
+      },
+      {
+        "rule_id": 0,
+        "context": {
+          "kind": "call_contract",
+          "target": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+          "fn_name": "add_context_rule"
+        },
+        "recommendation": "expire_rule"
+      },
+      {
+        "rule_id": 0,
+        "context": {
+          "kind": "default"
+        },
+        "recommendation": "expire_rule"
+      }
+    ]
+  },
+  "plan": {
+    "hash": "c14a476b22f8fe2cb5fca64d14c688f7af562a1a8df93562c856264f06d51ecd",
+    "steps": [
+      {
+        "order": 1,
+        "fn": "add_context_rule",
+        "reversible": true
+      },
+      {
+        "order": 2,
+        "fn": "update_context_rule_valid_until",
+        "reversible": false
+      }
+    ]
+  }
+}

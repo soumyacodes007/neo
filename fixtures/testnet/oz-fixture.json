@@ -1,0 +1,17 @@
+{
+  "schema_version": "1",
+  "network": "testnet",
+  "created_at": "2026-07-05T12:52:05Z",
+  "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "account_alias": "ozpb-account-20260705125109",
+  "account_wasm_hash": "4a50a65e82b2127b02af8c03e16c335e94aa048653093b6bf81b6c11105bab93",
+  "ed25519_verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+  "ed25519_verifier_alias": "ozpb-ed25519-20260705125109",
+  "ed25519_verifier_wasm_hash": "197c8fc584b38fb08c4b2a21544eac0b036d8bee0339685f58e38291d2114c93",
+  "threshold_policy": "CCARLXYN4XSCN2TFJJQJ2OCOP6B254PTIUKKFKCUEKADJYNQPOKVPS4K",
+  "threshold_policy_alias": "ozpb-threshold-20260705125109",
+  "threshold_policy_wasm_hash": "dceed5cb26885849481e693efe9bc0db46c662b604d1d0f750c17cdb5e9777af",
+  "external_signer_key_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29",
+  "fixture_shape": "one external Ed25519 signer, one no-policy Default rule"
+}

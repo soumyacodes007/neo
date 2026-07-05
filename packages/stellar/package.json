@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@ozpb/core": "workspace:*",
-    "@stellar/stellar-sdk": "^13.1.0",
+    "@stellar/stellar-sdk": "^16.0.1",
     "zod": "^3.24.1"
   }
 }
