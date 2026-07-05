@@ -267,3 +267,23 @@ export function decodePolicyEntry(scv: xdr.ScVal): DecodedPolicyEntry {
     count: u32(requireField(f, "count")),
   };
 }
+
+/** Extract the stored ScVal from a ContractData ledger entry (base64 LedgerEntryData). */
+export function decodeContractDataVal(entryXdrB64: string): xdr.ScVal {
+  let data: xdr.LedgerEntryData;
+  try {
+    data = xdr.LedgerEntryData.fromXDR(entryXdrB64, "base64");
+  } catch (cause) {
+    throw new ToolError("E_DATA_MALFORMED_XDR", "could not decode LedgerEntryData", { cause });
+  }
+  if (data.switch().name !== "contractData") malformed("ledger entry (expected contractData)");
+  return data.contractData().val();
+}
+
+/** WASM hash (hex) of a contract from its instance ScVal, or null for a SAC/token. */
+export function instanceExecutableWasmHash(instanceVal: xdr.ScVal): WasmHash | null {
+  if (instanceVal.switch().name !== "scvContractInstance") malformed("contract instance");
+  const exec = instanceVal.instance().executable();
+  if (exec.switch().name !== "contractExecutableWasm") return null; // Stellar-asset contract
+  return toWasmHash(Buffer.from(exec.wasmHash()).toString("hex"));
+}
