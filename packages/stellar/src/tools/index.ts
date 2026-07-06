@@ -1,4 +1,5 @@
 export * from "./registry.js";
+export * from "./install-state.js";
 export * from "./interface-lookup.js";
 export * from "./parse-intent.js";
 export * from "./inspect-account.js";

@@ -1,6 +1,56 @@
-/stellar-contracts
+# Dependencies
 node_modules/
+.pnpm-store/
+
+# TypeScript / JavaScript build outputs
 dist/
+build/
 coverage/
 *.tsbuildinfo
+
+# Rust / Stellar build outputs
+target/
+rust/target/
+stellar-contracts/target/
+*.wasm
+
+# Local external clones and references
+/stellar-contracts/
+/references/
+/graphify-out/
+
+# Local scratch and generated temp files
+/.tmp/
+/tmp/
+/temp/
+*.tmp
+*.bak
+*.orig
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.secret
+*.seed
+*.mnemonic
+.stellar/
+
+# Local tool state
+.claude/settings.local.json
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
+desktop.ini

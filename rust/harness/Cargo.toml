@@ -1,0 +1,18 @@
+[package]
+name = "ozpb-fork-harness"
+edition = "2021"
+version = "0.1.0"
+license = "Apache-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+soroban-sdk = { version = "26.1.0", features = ["experimental_spec_shaking_v2", "testutils"] }
+stellar-accounts = { path = "../../stellar-contracts/packages/accounts", version = "0.7.1" }
+stellar-pb-arg-guard = { path = "../policies/pb-arg-guard" }
+stellar-pb-call-cap = { path = "../policies/pb-call-cap" }
+stellar-pb-function-allowlist = { path = "../policies/pb-function-allowlist" }
+stellar-pb-rate-limit = { path = "../policies/pb-rate-limit" }

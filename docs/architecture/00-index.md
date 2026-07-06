@@ -24,8 +24,9 @@
 | 11 | `11-roadmap-testing.md` | Milestone → epic → work item → function → test-first spec | ✅ done | 2 |
 | 12 | `12-walkthroughs.md` | Blend / SEP-41 subscription / Soroswap walkthrough specs + tier demos | ✅ done | 2 |
 | 13 | `13-implementation-checklist.md` | Phase-by-phase build checklist (10 phases): build item → ref volume → tests-first → gate | ✅ done | 3 |
+| 14 | `14-wallet-bridge.md` | Browser companion signing window, loopback bridge protocol, MCP server runtime architecture | ✅ done | 4 |
 
-**Continuation protocol:** all 13 volumes are now written (Session 2 completed 03–09, 11, 12). Volume 10 remains the living edge-case registry — append newly discovered ECs there per layer. Remaining work is refinement, not new volumes: deepen any volume on request, and run the CI cross-reference integrity pass (grep for dangling EC-/FN-/T-/SCH- IDs) once implementation begins.
+**Continuation protocol:** all 14 volumes are now written. Volume 10 remains the living edge-case registry — append newly discovered ECs there per layer. Remaining work is refinement, not new volumes: deepen any volume on request, and run the CI cross-reference integrity pass (grep for dangling EC-/FN-/T-/SCH- IDs) once implementation begins.
 
 ---
 

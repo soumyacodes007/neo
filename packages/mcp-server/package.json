@@ -1,0 +1,30 @@
+{
+  "name": "@ozpb/mcp-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP stdio server exposing OZ Policy Builder tools.",
+  "bin": {
+    "ozpb-mcp-server": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@ozpb/core": "workspace:*",
+    "@ozpb/plans": "workspace:*",
+    "@ozpb/stellar": "workspace:*",
+    "@ozpb/wallet-bridge": "workspace:*",
+    "zod": "^3.24.1"
+  }
+}

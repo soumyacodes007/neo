@@ -3,6 +3,8 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/stellar" },
-    { "path": "./packages/plans" }
+    { "path": "./packages/plans" },
+    { "path": "./packages/wallet-bridge" },
+    { "path": "./packages/mcp-server" }
   ]
 }

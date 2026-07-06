@@ -1,0 +1,154 @@
+{
+  "snapshot_path": null,
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "rule": {
+    "id": 42,
+    "target_contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "valid_until": 4000000
+  },
+  "policies": [
+    {
+      "kind": "function_allowlist",
+      "allowed": [
+        "submit"
+      ]
+    },
+    {
+      "kind": "arg_guard",
+      "rules": [
+        {
+          "fn_name": "submit",
+          "arg_index": 0,
+          "path": [
+            {
+              "kind": "wildcard"
+            },
+            {
+              "kind": "field",
+              "name": "request_type"
+            }
+          ],
+          "pred": {
+            "kind": "u32_in",
+            "values": [
+              2
+            ]
+          },
+          "forall": true
+        },
+        {
+          "fn_name": "submit",
+          "arg_index": 0,
+          "path": [
+            {
+              "kind": "wildcard"
+            },
+            {
+              "kind": "field",
+              "name": "address"
+            }
+          ],
+          "pred": {
+            "kind": "addr_eq",
+            "address": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+          },
+          "forall": true
+        }
+      ]
+    },
+    {
+      "kind": "call_cap",
+      "cap": "400",
+      "period_ledgers": 17280,
+      "fn_name": "submit",
+      "amount_path": [
+        {
+          "kind": "index",
+          "index": 0
+        },
+        {
+          "kind": "wildcard"
+        },
+        {
+          "kind": "field",
+          "name": "amount"
+        }
+      ],
+      "token_filter_path": [
+        {
+          "kind": "index",
+          "index": 0
+        },
+        {
+          "kind": "wildcard"
+        },
+        {
+          "kind": "field",
+          "name": "address"
+        }
+      ],
+      "token_filter_token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+    }
+  ],
+  "cases": [
+    {
+      "id": "blend-submit-400-reserve",
+      "kind": "permit",
+      "context": {
+        "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "fn_name": "submit",
+        "args_scval_b64": [
+          "AAAAEAAAAAEAAAABAAAAEQAAAAEAAAADAAAADwAAAAdhZGRyZXNzAAAAABIAAAAB15KLcsJwPM/q9+uf9O9NUEpVqLl5/JtFDqLIQrTRzmEAAAAPAAAABmFtb3VudAAAAAAACgAAAAAAAAAAAAAAAAAAAZAAAAAPAAAADHJlcXVlc3RfdHlwZQAAAAMAAAAC"
+        ]
+      },
+      "expected": {
+        "kind": "pass"
+      }
+    },
+    {
+      "id": "blend-submit-401-reserve-denied",
+      "kind": "deny",
+      "context": {
+        "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "fn_name": "submit",
+        "args_scval_b64": [
+          "AAAAEAAAAAEAAAABAAAAEQAAAAEAAAADAAAADwAAAAdhZGRyZXNzAAAAABIAAAAB15KLcsJwPM/q9+uf9O9NUEpVqLl5/JtFDqLIQrTRzmEAAAAPAAAABmFtb3VudAAAAAAACgAAAAAAAAAAAAAAAAAAAZEAAAAPAAAADHJlcXVlc3RfdHlwZQAAAAMAAAAC"
+        ]
+      },
+      "expected": {
+        "kind": "panic",
+        "contract_error_code": 3344
+      }
+    },
+    {
+      "id": "blend-submit-wrong-token-denied",
+      "kind": "deny",
+      "context": {
+        "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "fn_name": "submit",
+        "args_scval_b64": [
+          "AAAAEAAAAAEAAAABAAAAEQAAAAEAAAADAAAADwAAAAdhZGRyZXNzAAAAABIAAAABICLVbgq6ZFFvbmJgTSliMr6GT/37hNWGE+dCPKzgKygAAAAPAAAABmFtb3VudAAAAAAACgAAAAAAAAAAAAAAAAAAAZAAAAAPAAAADHJlcXVlc3RfdHlwZQAAAAMAAAAC"
+        ]
+      },
+      "expected": {
+        "kind": "panic",
+        "contract_error_code": 3325
+      }
+    },
+    {
+      "id": "blend-withdraw-wrong-function-denied",
+      "kind": "deny",
+      "context": {
+        "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "fn_name": "withdraw",
+        "args_scval_b64": [
+          "AAAAEAAAAAEAAAABAAAAEQAAAAEAAAADAAAADwAAAAdhZGRyZXNzAAAAABIAAAAB15KLcsJwPM/q9+uf9O9NUEpVqLl5/JtFDqLIQrTRzmEAAAAPAAAABmFtb3VudAAAAAAACgAAAAAAAAAAAAAAAAAAAZAAAAAPAAAADHJlcXVlc3RfdHlwZQAAAAMAAAAC"
+        ]
+      },
+      "expected": {
+        "kind": "panic",
+        "contract_error_code": 3303
+      }
+    }
+  ]
+}

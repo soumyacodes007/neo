@@ -34,6 +34,7 @@ import {
 } from "../keys.js";
 import type { RpcClient } from "../rpc.js";
 import type { ClassificationRegistry } from "./registry.js";
+import { readInstallState, type SimulateReadFn } from "./install-state.js";
 
 const MAX_RULES_HARD = 2000;
 
@@ -43,10 +44,14 @@ export interface InspectDeps {
   network: Network;
   /** ISO-8601 timestamp source (only stamped into `taken_at`, excluded from the hash). */
   now: () => string;
+  /** Read a policy getter via simulation (A1.5). Absent ⇒ install-state not read. */
+  simulate?: SimulateReadFn;
 }
 
 export interface InspectAccountInput {
   account: string;
+  /** Read policy install-state via simulated getters (default true when `simulate` is provided). */
+  resolve_policy_state?: boolean;
 }
 
 export async function inspectAccount(
@@ -129,10 +134,26 @@ export async function inspectAccount(
     }
   }
 
+  // 4b. Read policy install-state per rule×policy (A1.5), keyed `${ruleId}:${policyId}`.
+  const installState = new Map<string, unknown>();
+  if (deps.simulate !== undefined && input.resolve_policy_state !== false) {
+    for (const [ruleId, r] of decodedRules.entries()) {
+      for (const pid of r.policy_ids) {
+        const ref = policyById.get(pid);
+        if (ref === undefined) continue;
+        const state = await readInstallState(ref.classification, ref.address, ruleId, account, deps.simulate);
+        if (state !== undefined) installState.set(`${String(ruleId)}:${String(pid)}`, state);
+        else if (ref.classification !== "unknown" && ref.classification !== "generated") {
+          warnings.push({ code: "install_state_unread", message: `could not read install-state for policy ${ref.address} on rule ${String(ruleId)}`, rule_id: ruleId });
+        }
+      }
+    }
+  }
+
   // 5. Assemble rule models.
   const rules: ContextRuleModel[] = [...decodedRules.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([id, r]) => buildRuleModel(id, r, account, ledger, signerById, policyById));
+    .map(([id, r]) => buildRuleModel(id, r, account, ledger, signerById, policyById, installState));
 
   const adminPaths = rules.filter((r) => r.privilege === "admin-equivalent").map((r) => r.id);
   const recoveryPaths = rules
@@ -169,6 +190,7 @@ function buildRuleModel(
   ledger: number,
   signerById: Map<number, SignerRef>,
   policyById: Map<number, PolicyRef>,
+  installState: Map<string, unknown>,
 ): ContextRuleModel {
   const isAdmin =
     r.context_type.kind === "default" ||
@@ -180,7 +202,12 @@ function buildRuleModel(
     context_type: r.context_type,
     ...(r.valid_until_ledger !== undefined ? { valid_until_ledger: toLedgerSeq(r.valid_until_ledger) } : {}),
     signers: r.signer_ids.map((sid) => signerById.get(sid) ?? unreachable()),
-    policies: r.policy_ids.map((pid) => policyById.get(pid) ?? unreachable()),
+    // Per-rule policy refs: attach this rule's install-state (state is keyed by rule).
+    policies: r.policy_ids.map((pid) => {
+      const base = policyById.get(pid) ?? unreachable();
+      const state = installState.get(`${String(id)}:${String(pid)}`);
+      return state !== undefined ? { ...base, install_state: state } : base;
+    }),
     privilege: isAdmin ? "admin-equivalent" : "scoped",
     status: expired ? "expired" : "active",
   };

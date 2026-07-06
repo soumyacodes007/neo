@@ -1,0 +1,28 @@
+{
+  "name": "@ozpb/wallet-bridge",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Loopback browser companion bridge for owner approval and signed-XDR handoff.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b && node ../../scripts/build-wallet-bridge-client.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ozpb/core": "workspace:*",
+    "@ozpb/stellar": "workspace:*",
+    "@stellar/stellar-sdk": "^16.0.1",
+    "buffer": "^6.0.3"
+  },
+  "optionalDependencies": {
+    "smart-account-kit": "0.2.10"
+  }
+}

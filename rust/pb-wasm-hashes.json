@@ -1,0 +1,7 @@
+{
+  "_note": "WASM hashes emitted by `stellar contract build --manifest-path rust/Cargo.toml`. Regenerate after any policy change; the on-chain classification registry (Vol 04 FN-A1.4) matches the DEPLOYED code hash. Unknown/forked hashes classify as `unknown` (fail-closed, EC-A05).",
+  "pb:function_allowlist": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af",
+  "pb:arg_guard": "927587ff25c5e6eebc8b69293414461eb3c7139b8adf03a6d0bb6ab20bdf43a5",
+  "pb:call_cap": "e91086d4a3ce0e5b0fdfb7711d8b9b30f4e379f54643ae5519b7ff86c7ab6091",
+  "pb:rate_limit": "7bd9003692b46cf462f411563fee7ea7a9056c3f7de49c508f0c3d1ec672cb86"
+}

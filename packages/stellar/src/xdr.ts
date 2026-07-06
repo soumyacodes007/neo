@@ -224,15 +224,22 @@ export function decodeMeta(metaXdr: string | undefined, success: boolean): Decod
     throw new ToolError("E_DATA_MALFORMED_XDR", "could not decode TransactionMeta", { cause });
   }
   const version = meta.switch();
-  if (version !== 3) {
-    // This SDK's protocol tops out at meta v3; older/newer versions need a
-    // provider that reconstructs Soroban detail.
+  let contractEvents: xdr.ContractEvent[];
+  if (version === 3) {
+    const soroban = meta.v3().sorobanMeta() ?? undefined;
+    contractEvents = soroban?.events() ?? [];
+  } else if (version === 4) {
+    const v4 = meta.v4();
+    contractEvents = [
+      ...v4.events().map((event) => event.event()),
+      ...v4.operations().flatMap((op) => op.events()),
+    ];
+  } else {
     throw new ToolError("E_DATA_META_VERSION", `unsupported TransactionMeta v${String(version)} (EC-X03)`, {
       suggestion: "use a deep-history provider (Hubble) that reconstructs Soroban detail",
     });
   }
-  const soroban = meta.v3().sorobanMeta() ?? undefined;
-  const events: DecodedEvent[] = (soroban?.events() ?? []).map(decodeContractEvent);
+  const events: DecodedEvent[] = contractEvents.map(decodeContractEvent);
   return { events, success };
 }
 
@@ -241,7 +248,7 @@ function decodeContractEvent(ev: xdr.ContractEvent): DecodedEvent {
   const contractHash = ev.contractId();
   const contract = contractHash === undefined || contractHash === null
     ? undefined
-    : assertContractId(Address.contract(Buffer.from(contractHash)).toString());
+    : assertContractId(Address.contract(Buffer.from(contractHash as unknown as Uint8Array)).toString());
   return {
     ...(contract !== undefined ? { contract } : {}),
     topics: body.topics().map(toScValJson),
@@ -259,6 +266,19 @@ function i128FromData(data: ScValJson): string | undefined {
   // SAC amounts are bare i128; some events wrap the amount in a struct.
   if ((data.type === "scvI128" || data.type === "scvU128") && typeof data.value === "string") {
     return data.value;
+  }
+  if (data.type === "scvVec" && Array.isArray(data.value)) {
+    for (const item of [...data.value].reverse()) {
+      if (
+        item !== null
+        && typeof item === "object"
+        && ("type" in item)
+        && ((item as ScValJson).type === "scvI128" || (item as ScValJson).type === "scvU128")
+        && typeof (item as ScValJson).value === "string"
+      ) {
+        return (item as ScValJson).value as string;
+      }
+    }
   }
   return undefined;
 }

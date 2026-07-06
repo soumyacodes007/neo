@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "test_id": "SD4.real-blend-testnet-submit",
+  "created_at": "2026-07-06T13:45:07.477Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+  "signer": {
+    "type": "external",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "key_data_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29"
+  },
+  "blend": {
+    "registry_url": "https://raw.githubusercontent.com/blend-capital/blend-utils/main/testnet.contracts.json",
+    "pool": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "reserve": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "request_type": "SupplyCollateral",
+    "request_type_id": 2,
+    "amount": "100000"
+  },
+  "funding": {
+    "reserve": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "amount": "1000000",
+    "tx_hash": "26a3877a9206589c635a15b8c0377857b4cb98d8500ffa5e087ee475aa50be16",
+    "status": "SUCCESS",
+    "ledger": 3466015
+  },
+  "tx_hash": "a8993839b88cec84870112ee4fbe6b98c0050ed70fa16b8ebae1750d07dfab23",
+  "tx_status": "SUCCESS",
+  "ledger": 3466017,
+  "auth_digest_replay": {
+    "test_id": "T-ST.18-2",
+    "signature_payload_hex": "b6c874ede6784f2e14333dc9f7fb2fbe6d26136ea636e7a30646a8a67bef9d11",
+    "context_rule_ids": [
+      0,
+      0
+    ],
+    "auth_digest_hex": "6233e402251aa5e2db24ceec99d098aff53ed639f43ce58ac0bb62c81440f5ea",
+    "signature_hex": "a4fc712188695691656fa97c3bd7388e8f6366774eea327827483e98920fc6ff4ab375ac93ffd0c923aa45ae44e74df795c485fbdef0894e065d66bacef3c008",
+    "replay_result": "accepted_on_real_blend_testnet_submit"
+  },
+  "wasm_hashes": {
+    "account": "4a50a65e82b2127b02af8c03e16c335e94aa048653093b6bf81b6c11105bab93",
+    "ed25519_verifier": "197c8fc584b38fb08c4b2a21544eac0b036d8bee0339685f58e38291d2114c93",
+    "blend_lending_pool_v2": "a41fc53d6753b6c04eb15b021c55052366a4c8e0e21bc72700f461264ec1350e"
+  },
+  "pipeline": {
+    "trace": {
+      "tx_hash": "a8993839b88cec84870112ee4fbe6b98c0050ed70fa16b8ebae1750d07dfab23",
+      "successful": true,
+      "meta_decode_status": "decoded",
+      "auth_entries": 1,
+      "operations": 1,
+      "events": 4,
+      "token_deltas": 1
+    },
+    "evidence": {
+      "evidence_hash": "44a0f01bca6a2cc8e406c76321d3c59f9200805af6cd29f07f49425a01b98266",
+      "context_count": 2,
+      "contexts": [
+        {
+          "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+          "fn_name": "submit",
+          "arity": 4,
+          "depth": "root",
+          "observed_args": 4
+        },
+        {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "arity": 3,
+          "depth": "sub",
+          "observed_args": 3
+        }
+      ]
+    },
+    "ruleset": {
+      "ruleset_hash": "267bf6f9dd50021f88d76a8cc0e309dd87723f96d9653dcf06c2be397cd7d481",
+      "rule_count": 2,
+      "unsatisfied_count": 0
+    },
+    "bypass": {
+      "report_hash": "3917b7a582361c590f66abb9a569701279d38f3233962dcaecce37c127a5cbed",
+      "bypass_count": 4,
+      "unknown_count": 0,
+      "exhaustive": true
+    }
+  }
+}

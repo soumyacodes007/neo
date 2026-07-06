@@ -1,0 +1,91 @@
+{
+  "schema_version": "1",
+  "test_id": "T-P.compose-blend-submit",
+  "created_at": "2026-07-06T13:47:38.770Z",
+  "network_evidence": {
+    "pb_deployments_fixture": "fixtures/testnet/pb-policy-deployments.json",
+    "deployed_policy_contracts": [
+      {
+        "classification": "pb:function_allowlist",
+        "alias": "ozpb-pb-function_allowlist-20260706124707",
+        "address": "CBZUMOD3JEQOFYTUM5SDSBNOAOP25VLS2DDKDCG6T4RQPR2KE6SRC6YH",
+        "wasm_path": "rust/target/wasm32v1-none/release/stellar_pb_function_allowlist.wasm",
+        "wasm_hash": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af"
+      },
+      {
+        "classification": "pb:arg_guard",
+        "alias": "ozpb-pb-arg_guard-20260706124707",
+        "address": "CADIBF4HZOMPVC5STXKCUAMAPGGJYI5EXMWEESKBSRAWOCBLSA22IKMZ",
+        "wasm_path": "rust/target/wasm32v1-none/release/stellar_pb_arg_guard.wasm",
+        "wasm_hash": "927587ff25c5e6eebc8b69293414461eb3c7139b8adf03a6d0bb6ab20bdf43a5"
+      },
+      {
+        "classification": "pb:call_cap",
+        "alias": "ozpb-pb-call_cap-20260706124707",
+        "address": "CCHNJ6NBQAKM6NOVQFUSKUOP4TQDZERVWNHQVG7KWT3ANJ3VESZKDY22",
+        "wasm_path": "rust/target/wasm32v1-none/release/stellar_pb_call_cap.wasm",
+        "wasm_hash": "e91086d4a3ce0e5b0fdfb7711d8b9b30f4e379f54643ae5519b7ff86c7ab6091"
+      },
+      {
+        "classification": "pb:rate_limit",
+        "alias": "ozpb-pb-rate_limit-20260706124707",
+        "address": "CDJLQS2CTX4TVIKZ364YDRQ3JUNALFV6TKN7JVEPZ4BZF4SFQNVRXS7F",
+        "wasm_path": "rust/target/wasm32v1-none/release/stellar_pb_rate_limit.wasm",
+        "wasm_hash": "7bd9003692b46cf462f411563fee7ea7a9056c3f7de49c508f0c3d1ec672cb86"
+      }
+    ],
+    "blend_registry_source": "https://raw.githubusercontent.com/blend-capital/blend-utils/main/testnet.contracts.json",
+    "blend_contracts": {
+      "XLM": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      "BLND": "CB22KRA3YZVCNCQI64JQ5WE7UY2VAV7WFLK6A2JN3HEX56T2EDAFO7QF",
+      "USDC": "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
+      "wETH": "CAZAQB3D7KSLSNOSQKYD2V4JP5V2Y3B4RDJZRLBFCCIXDCTE3WHSY3UE",
+      "wBTC": "CAP5AMC2OHNVREO66DFIN6DHJMPOBAJ2KCDDIMFBR7WWJH5RZBFM3UEI",
+      "cometFactory": "CDX2TKELFKHP2MWISDCXWWZ73CL7F57GHYRJAWJWNOTLNJNNM7XLT4JY",
+      "comet": "CA5UTUUPHYL5K22UBRUVC37EARZUGYOSGK3IKIXG2JLCC5ZZLI4BDWDM",
+      "oraclemock": "CAZOKR2Y5E2OSWSIBRVZMJ47RUTQPIGVWSAQ2UISGAVC46XKPGDG5PKI",
+      "emitter": "CC3WJVJINN4E3LPMNTWKK7LQZLYDQMZHZA7EZGXATPHHBPKNZRIO3KZ6",
+      "poolFactoryV2": "CDV6RX4CGPCOKGTBFS52V3LMWQGZN3LCQTXF5RVPOOCG4XVMHXQ4NTF6",
+      "backstopV2": "CBDVWXT433PRVTUNM56C3JREF3HIZHRBA64NB2C3B2UNCKIS65ZYCLZA",
+      "TestnetV2": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF"
+    },
+    "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235"
+  },
+  "sandbox": {
+    "engine": "rust/harness",
+    "input_fixture": "fixtures/testnet/sd4-compose-blend-submit-input.json",
+    "toolchain_fingerprint": "rust-harness:soroban-sdk-26.1.0"
+  },
+  "blend_shape": {
+    "target_contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "asset_token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "request_vector_fields": [
+      "request_type",
+      "address",
+      "amount"
+    ]
+  },
+  "verdict": "pass",
+  "cases": [
+    {
+      "case_id": "blend-submit-400-reserve",
+      "outcome": "pass",
+      "detail": null
+    },
+    {
+      "case_id": "blend-submit-401-reserve-denied",
+      "outcome": "pass",
+      "detail": "HostError: Error(Contract, #3344)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M, topics:[error, Error(Contract, #3344)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M, topics:[error, Error(Contract, #3344)], data:[\"failing with contract error\", 3344]\n"
+    },
+    {
+      "case_id": "blend-submit-wrong-token-denied",
+      "outcome": "pass",
+      "detail": "HostError: Error(Contract, #3325)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:[\"failing with contract error\", 3325]\n"
+    },
+    {
+      "case_id": "blend-withdraw-wrong-function-denied",
+      "outcome": "pass",
+      "detail": "HostError: Error(Contract, #3303)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM, topics:[error, Error(Contract, #3303)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM, topics:[error, Error(Contract, #3303)], data:[\"failing with contract error\", 3303]\n"
+    }
+  ]
+}

@@ -193,11 +193,11 @@ This volume adds no new specs. Every `FN-`, `T-`, `EC-`, `WI-` ID resolves to Vo
 
 ## Phase 8 — Wallet integration, skill, walkthroughs
 
-**Reference volumes:** Vol 09 §4 (F1), Vol 00 §3.3 (skill grammar + hard rules), Vol 12 (walkthroughs).
+**Reference volumes:** Vol 09 §4 (F1), Vol 14 (browser wallet bridge), Vol 00 §3.3 (skill grammar + hard rules), Vol 12 (walkthroughs).
 
 **Build**
 - [ ] F1 `submit-plan` FN-F1.1 — approval-gated, `--enable-submit` off by default; disk-loaded hash-chain re-verify, constant-time token compare, live pre-flight, resumable idempotent steps; `direct` + `relayer` transports. **Never signs.** **Ref: Vol 09 §4.** *(WI-4.1)*
-- [ ] smart-account-kit integration: record→generate→simulate→sign→install on testnet. **Ref: Vol 09 §4; parent §2.4.** *(WI-4.1)*
+- [ ] smart-account-kit integration: browser companion bridge + record→generate→simulate→sign→install on testnet. **Ref: Vol 14; Vol 09 §4; parent §2.4.** *(WI-4.1)*
 - [ ] Claude skill package — tool grammar + hard rules (never submit without quoted token; always run verification). **Ref: Vol 00 §3.3.** *(WI-4.2)*
 - [ ] Three documented walkthroughs (Blend / SEP-41 subscription / Soroswap) runnable from a clean checkout. **Ref: Vol 12.** *(WI-4.3)*
 

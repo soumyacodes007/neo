@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "network": "testnet",
+  "created_at": "2026-07-05T15:51:28.107Z",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+  "signer": {
+    "type": "external",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "key_data_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29"
+  },
+  "target": {
+    "contract": "CBWYH4YN2KPW3O3OWBY3MLSB64P6GUGTON2C3OGT2TMAHXK5HBGU2ZK2",
+    "fn": "transfer",
+    "description": "real smart-account-authorized SEP-41 transfer from the smart account",
+    "from": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+    "to": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+    "amount": "12345"
+  },
+  "setup": {
+    "token_contract": "CBWYH4YN2KPW3O3OWBY3MLSB64P6GUGTON2C3OGT2TMAHXK5HBGU2ZK2",
+    "token_wasm_hash": "f756011f5c29b17243be8b4e391a0ff21cc936be429e37c934e7c27ce824f221",
+    "mint_tx_hash": "e11361850f683f0c093502cf2f83438473de0c334b03e475549a4baf71f90288",
+    "minted_to_account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG"
+  },
+  "tx_hash": "11fd1532da562b1e49a3680a85f8c85924c7dd7305ebbfa19145b7b2fbce20e5",
+  "tx_status": "SUCCESS",
+  "ledger": 3450277,
+  "auth_valid_until_ledger": 3451276,
+  "latest_smoke_report": {
+    "path": "fixtures/testnet/phase5-smoke-report.json",
+    "plan_hash": "c14a476b22f8fe2cb5fca64d14c688f7af562a1a8df93562c856264f06d51ecd",
+    "snapshot_hash": "519f5b243daec1dea4b38eb6e10afd1a92ca0ef0dc2cc43b72e8113595e93910"
+  },
+  "wasm_hashes": {
+    "account": "4a50a65e82b2127b02af8c03e16c335e94aa048653093b6bf81b6c11105bab93",
+    "ed25519_verifier": "197c8fc584b38fb08c4b2a21544eac0b036d8bee0339685f58e38291d2114c93",
+    "threshold_policy": "dceed5cb26885849481e693efe9bc0db46c662b604d1d0f750c17cdb5e9777af",
+    "token": "f756011f5c29b17243be8b4e391a0ff21cc936be429e37c934e7c27ce824f221"
+  },
+  "pipeline": {
+    "trace": {
+      "tx_hash": "11fd1532da562b1e49a3680a85f8c85924c7dd7305ebbfa19145b7b2fbce20e5",
+      "successful": true,
+      "meta_decode_status": "decoded",
+      "auth_entries": 1,
+      "operations": 1,
+      "events": 3,
+      "token_deltas": 1
+    },
+    "token_deltas": [
+      {
+        "token": "CBWYH4YN2KPW3O3OWBY3MLSB64P6GUGTON2C3OGT2TMAHXK5HBGU2ZK2",
+        "from": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+        "to": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+        "amount": "12345",
+        "decimals": 0,
+        "source": "event"
+      }
+    ],
+    "evidence": {
+      "evidence_hash": "8339c0faf069329aa3caba2b9fd223b470ab5fd5a91fea9f5c3ca266ee3cf678",
+      "context_count": 1,
+      "contexts": [
+        {
+          "contract": "CBWYH4YN2KPW3O3OWBY3MLSB64P6GUGTON2C3OGT2TMAHXK5HBGU2ZK2",
+          "fn_name": "transfer",
+          "arity": 3,
+          "depth": "root",
+          "observed_args": 3
+        }
+      ]
+    },
+    "ruleset": {
+      "ruleset_hash": "212007be0cf241a26b1d84e489e99aac1cd2ce7a304441d11405c299c3f3f708",
+      "rule_count": 1,
+      "unsatisfied_count": 0
+    },
+    "bypass": {
+      "report_hash": "242ad81f06560dd88ef932412161c223f3b5f33110b0de5568366a126f05746a",
+      "bypass_count": 3,
+      "unknown_count": 0,
+      "exhaustive": true
+    }
+  }
+}

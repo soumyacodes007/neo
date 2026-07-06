@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "test_id": "SD4.full-policy-install-session-key",
+  "created_at": "2026-07-06T13:18:29.116Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "owner_signer": {
+    "type": "external",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "key_data_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29"
+  },
+  "session_signer": {
+    "type": "external",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "key_data_hex": "ae1dc08f5f8ee8d59a8028368504ce2e96ff2fa6b0e24ae198777f9f690adbe3",
+    "signer_id": 7
+  },
+  "installed_rule": {
+    "id": 7,
+    "name": "sd4-7",
+    "valid_until_ledger": 3482974,
+    "context_type": {
+      "kind": "call_contract",
+      "address": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG"
+    },
+    "policies": [
+      {
+        "address": "CBZUMOD3JEQOFYTUM5SDSBNOAOP25VLS2DDKDCG6T4RQPR2KE6SRC6YH",
+        "policy_id": 0,
+        "classification": "pb:function_allowlist",
+        "wasm_hash": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af"
+      }
+    ]
+  },
+  "transactions": {
+    "install_context_rule": {
+      "status": "SUCCESS",
+      "hash": "b6b572c13747ec4aea98f58af20c6ebb015cf36d818b0cf03fcefc241da5b718",
+      "ledger": 3465696,
+      "fn": "add_context_rule",
+      "auth_digest_hex": "02f6be9cde03e7f5d73b56223d39612ff590ca605ea18c89be743f3b34e015cc",
+      "context_rule_ids": [
+        0
+      ]
+    },
+    "matching_session_action": {
+      "status": "SUCCESS",
+      "hash": "dfa0b7dd513b1f767cde07bf0933b3611e9d136d8eabf92f67b12150b15833a7",
+      "ledger": 3465698,
+      "fn": "batch_add_signer",
+      "auth_digest_hex": "6db812222f1c8a985d825e422b52d7d95dac1525fb00b1a50d9d35186050cc51",
+      "context_rule_ids": [
+        7
+      ]
+    }
+  },
+  "changed_action": {
+    "contract": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+    "fn": "remove_context_rule",
+    "submitted": false,
+    "reason_not_submitted": "coverage_router_requires_owner_approval",
+    "session_signed_simulation_diagnostic": {
+      "accepted": true,
+      "phase": "signed_auth_simulation",
+      "auth_digest_hex": "1bcfbdd9a9dd1ff4f9b81d035862fc601288a141b3bbe1049a34f76e1401ada2",
+      "context_rule_ids": [
+        7
+      ]
+    },
+    "route_decision": {
+      "covered": false,
+      "reason": "no_matching_policy"
+    }
+  },
+  "coverage_decisions": {
+    "matching": {
+      "covered": true,
+      "pattern": {
+        "contract": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+        "fn": "batch_add_signer",
+        "valid_until_ledger": 3482974
+      },
+      "reason": "matched_policy"
+    },
+    "changed": {
+      "covered": false,
+      "reason": "no_matching_policy"
+    }
+  },
+  "wasm_hashes": {
+    "account": "4a50a65e82b2127b02af8c03e16c335e94aa048653093b6bf81b6c11105bab93",
+    "ed25519_verifier": "197c8fc584b38fb08c4b2a21544eac0b036d8bee0339685f58e38291d2114c93",
+    "function_allowlist": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af"
+  }
+}

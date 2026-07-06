@@ -138,13 +138,7 @@ export async function prepareInstallPlan(input: InstallPlanInput, deps: InstallP
   const pre_state = { rules_snapshot: input.accountSnapshot.rules };
   const revocation_plan = buildRevocationPlan({ ruleset: input.ruleset, accountSnapshot: input.accountSnapshot });
 
-  // plan_hash excludes the volatile `simulated` resource fields (EC-M03).
-  const hashInput = {
-    steps: steps.map((s) => ({ order: s.order, kind: s.kind, tx_xdr_unsigned: s.tx_xdr_unsigned, invoke: s.invoke ?? null })),
-    depends_on,
-    pre_state,
-  };
-  const plan_hash = canonicalHash(hashInput as unknown as JsonValue);
+  const plan_hash = computePlanHash({ steps, depends_on, pre_state });
 
   const plan: InstallPlan = {
     schema_version: "1",
@@ -159,6 +153,24 @@ export async function prepareInstallPlan(input: InstallPlanInput, deps: InstallP
     expires_at_ledger,
   };
   return { plan, approvalToken };
+}
+
+/**
+ * plan_hash over steps + depends_on + pre_state, EXCLUDING the volatile `simulated`
+ * resource fields (EC-M03) so a re-simulation at submit does not break the hash.
+ * Shared by E1 (build) and F1 (verify) so they can never disagree.
+ */
+export function computePlanHash(p: {
+  steps: PlanStep[];
+  depends_on: InstallPlan["depends_on"];
+  pre_state: InstallPlan["pre_state"];
+}): string {
+  const hashInput = {
+    steps: p.steps.map((s) => ({ order: s.order, kind: s.kind, tx_xdr_unsigned: s.tx_xdr_unsigned, invoke: s.invoke ?? null })),
+    depends_on: p.depends_on,
+    pre_state: p.pre_state,
+  };
+  return canonicalHash(hashInput as unknown as JsonValue);
 }
 
 /** Refuse to build without fresh, hash-matched, green verification (EC-T03/U06). */

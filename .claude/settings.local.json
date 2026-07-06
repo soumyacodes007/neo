@@ -30,7 +30,28 @@
       "Bash(pnpm -s --filter @ozpb/core exec vitest run src/synthesis/synthesis.test.ts)",
       "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/interface-lookup.test.ts src/tools/parse-intent.test.ts)",
       "Bash(pnpm -s exec tsc -b packages/plans)",
-      "Bash(pnpm -s --filter @ozpb/plans exec vitest run)"
+      "Bash(pnpm -s --filter @ozpb/plans exec vitest run)",
+      "Bash(cargo test *)",
+      "Bash(stellar version *)",
+      "Bash(cargo clippy *)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/registry.test.ts)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm -s --filter @ozpb/core exec vitest run src/synthesis/synthesize-examples.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/plans exec vitest run src/submit-plan.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/plans exec vitest run src/codegen.test.ts)",
+      "Bash(pnpm -s exec tsc -b packages/core packages/plans)",
+      "Bash(SOROBAN_SDK_BUILD_SYSTEM_SUPPORTS_SPEC_SHAKING_V2=1 cargo check -p stellar-generated-novel-slippage-guard)",
+      "Bash(sed -n '/pub struct SimpleThresholdAccountParams/,/^}/p' packages/accounts/src/policies/simple_threshold.rs)",
+      "Bash(sed -n '/pub struct WeightedThresholdAccountParams/,/^}/p' packages/accounts/src/policies/weighted_threshold.rs)",
+      "Bash(node *)",
+      "Bash(pnpm -s exec tsc -b packages/plans packages/stellar)",
+      "Bash(pnpm -s --filter @ozpb/plans exec vitest run src/sandbox.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/install-params.test.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/inspect-account.test.ts src/tools/install-state.ts)",
+      "Bash(pnpm -s --filter @ozpb/stellar exec vitest run src/tools/parse-intent.test.ts)",
+      "WebSearch",
+      "Bash(grep -nA20 \"fn verify\")",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

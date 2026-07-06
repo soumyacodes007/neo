@@ -90,4 +90,49 @@ describe("parseIntent (B3)", () => {
     if (!("intent" in r)) throw new Error("expected intent");
     expect(r.intent.allow_default_context).toBe(false);
   });
+
+  it("T-B3.2-1: a known token symbol resolves to a confirmation clarification (echoed, never auto-accepted)", async () => {
+    const bySymbol = draft({
+      budgets: [
+        { token_symbol: "USDC", cap: "500", decimals: 7, window: { days: 1 }, scope: "outflow_via_transfer", provenance: { kind: "user_intent", quote: "500 usdc/day" } },
+      ],
+    });
+    const deps: ParseIntentDeps = {
+      existsContract: () => Promise.resolve(true),
+      resolveSymbol: (s) => (s === "USDC" ? { address: C_USDC, decimals: 7, source: "SEP-1 TOML" } : null),
+    };
+    const r = await parseIntent({ draft: bySymbol, network: "testnet" }, deps);
+    expect("clarifications_needed" in r).toBe(true);
+    if ("clarifications_needed" in r) {
+      expect(r.clarifications_needed[0]?.question).toContain(C_USDC);
+      expect(r.clarifications_needed[0]?.field).toBe("budgets[0].token");
+    }
+  });
+
+  it("T-B3.2-2: an unknown symbol requires an address", async () => {
+    const bySymbol = draft({
+      budgets: [
+        { token_symbol: "WAT", cap: "1", decimals: 7, window: { days: 1 }, scope: "outflow_via_transfer", provenance: { kind: "user_intent", quote: "q" } },
+      ],
+    });
+    const r = await parseIntent({ draft: bySymbol, network: "testnet" }, { existsContract: () => Promise.resolve(true), resolveSymbol: () => null });
+    if (!("clarifications_needed" in r)) throw new Error("expected clarification");
+    expect(r.clarifications_needed[0]?.question).toMatch(/Unknown token symbol 'WAT'/);
+  });
+
+  it("T-B3.3: on-chain decimals mismatch triggers a reconciliation clarification", async () => {
+    const deps: ParseIntentDeps = {
+      existsContract: () => Promise.resolve(true),
+      readDecimals: () => Promise.resolve(6), // draft says 7
+    };
+    const r = await parseIntent({ draft: draft(), network: "testnet" }, deps);
+    if (!("clarifications_needed" in r)) throw new Error("expected clarification");
+    expect(r.clarifications_needed.some((c) => c.field === "budgets.decimals")).toBe(true);
+  });
+
+  it("matching decimals produce no clarification", async () => {
+    const deps: ParseIntentDeps = { existsContract: () => Promise.resolve(true), readDecimals: () => Promise.resolve(7) };
+    const r = await parseIntent({ draft: draft(), network: "testnet" }, deps);
+    expect("intent" in r).toBe(true);
+  });
 });

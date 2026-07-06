@@ -44,3 +44,28 @@ export class InMemoryRegistry implements ClassificationRegistry {
     return this.#accountWasms.has(wasmHashHex);
   }
 }
+
+/** The four `pb_*` policy classifications produced by the Rust library (Vol 07). */
+const PB_CLASSIFICATIONS = [
+  "pb:function_allowlist",
+  "pb:arg_guard",
+  "pb:call_cap",
+  "pb:rate_limit",
+] as const;
+
+/**
+ * Register the audited `pb_*` policy WASM hashes so A1 can classify them on-chain
+ * (Vol 04 FN-A1.4). `hashes` maps each `pb:*` classification to the sha256 of its
+ * deployed WASM (see `rust/pb-wasm-hashes.json`). Any hash not registered here
+ * classifies as `unknown` — a forked/upgraded deployment is never trusted (EC-A05).
+ */
+export function registerPbPolicies(
+  registry: InMemoryRegistry,
+  hashes: Partial<Record<(typeof PB_CLASSIFICATIONS)[number], string>>,
+): InMemoryRegistry {
+  for (const classification of PB_CLASSIFICATIONS) {
+    const hash = hashes[classification];
+    if (hash !== undefined) registry.registerPolicy(hash, classification);
+  }
+  return registry;
+}

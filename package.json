@@ -10,22 +10,48 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && node scripts/build-wallet-bridge-client.mjs",
     "typecheck": "tsc -b --pretty",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "mcp:stdio": "node packages/mcp-server/dist/index.js",
+    "check": "corepack pnpm run build && corepack pnpm test && corepack pnpm run lint && corepack pnpm run secret:scan && corepack pnpm run xref:check",
+    "infra:check": "corepack pnpm run check && corepack pnpm run rust:clippy && corepack pnpm run rust:test && corepack pnpm run rust:build && corepack pnpm run docker:sandbox-smoke",
     "testnet:deploy-fixture": "wsl bash -lc 'bash scripts/deploy-oz-testnet-fixture.sh'",
     "testnet:phase5-smoke": "node scripts/phase5-testnet-smoke.mjs",
     "testnet:phase5-auth-tx": "node scripts/phase5-auth-tx-e2e.mjs",
+    "testnet:phase5-token-transfer": "node scripts/phase5-token-transfer-e2e.mjs",
+    "testnet:phase8-wallet-demo": "node scripts/phase8-wallet-demo.mjs",
     "docker:sandbox-smoke": "wsl bash -lc 'bash scripts/docker-sandbox-smoke.sh'",
+    "rust:test": "wsl bash -lc 'cargo test --manifest-path rust/Cargo.toml'",
+    "rust:clippy": "wsl bash -lc 'cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings'",
+    "rust:build": "wsl bash -lc 'stellar contract build --manifest-path rust/Cargo.toml'",
+    "rust:harness:clippy": "wsl bash -lc 'cargo clippy --manifest-path rust/harness/Cargo.toml --all-targets -- -D warnings'",
+    "rust:coverage": "wsl bash -lc 'bash scripts/rust-llvm-cov.sh'",
+    "testnet:deploy-pb": "wsl bash -lc 'bash scripts/deploy-pb-testnet.sh'",
+    "sd4:compose-blend-fork": "node scripts/sd4-compose-blend-fork.mjs",
+    "sd4:real-blend-testnet": "node scripts/sd4-real-blend-testnet-submit.mjs",
+    "sd4:auth-digest-replay": "node scripts/sd4-auth-digest-replay.mjs",
+    "sd4:session-key-testnet": "node scripts/sd4-session-key-testnet-demo.mjs",
+    "secret:scan": "node scripts/secret-grep-guard.mjs",
+    "xref:check": "node scripts/check-xrefs.mjs",
     "test:watch": "vitest",
     "lint": "eslint .",
     "clean": "tsc -b --clean"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.10.5",
-    "typescript": "^5.7.3",
-    "vitest": "^2.1.8",
     "@vitest/coverage-v8": "^2.1.8",
-    "fast-check": "^3.23.2"
+    "esbuild": "^0.28.1",
+    "eslint": "^10.6.0",
+    "fast-check": "^3.23.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@blend-capital/blend-sdk": "3.3.0",
+    "@modelcontextprotocol/sdk": "1.29.0"
   }
 }

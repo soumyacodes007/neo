@@ -13,7 +13,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { toContractId, type ContractId, type DecodedEvent } from "@ozpb/core";
 import { toScValJson } from "./scval.js";
-import { decodeTransactionEnvelope, deriveTokenDeltas } from "./xdr.js";
+import { decodeMeta, decodeTransactionEnvelope, deriveTokenDeltas } from "./xdr.js";
 
 const G = StrKey.encodeEd25519PublicKey(Buffer.alloc(32, 3));
 const G2 = StrKey.encodeEd25519PublicKey(Buffer.alloc(32, 5));
@@ -97,6 +97,24 @@ describe("deriveTokenDeltas (FN-ST.13)", () => {
     ]);
   });
 
+  it("parses v26 transfer events with muxed-id option plus amount vector data", () => {
+    const event: DecodedEvent = {
+      contract: CTOKEN,
+      topics: [
+        toScValJson(xdr.ScVal.scvSymbol("transfer")),
+        toScValJson(Address.fromString(G).toScVal()),
+        toScValJson(Address.fromString(G2).toScVal()),
+      ],
+      data: toScValJson(xdr.ScVal.scvVec([
+        xdr.ScVal.scvVoid(),
+        nativeToScVal(250n, { type: "i128" }),
+      ])),
+    };
+    expect(deriveTokenDeltas([event], () => undefined)).toEqual([
+      { token: CTOKEN, from: G, to: G2, amount: "250", decimals: 0, source: "event" },
+    ]);
+  });
+
   it("drops only metadata when enrichment fails (EC-X10)", () => {
     const deltas = deriveTokenDeltas([ev("transfer", G, G2, 5n, CTOKEN)], () => undefined);
     expect(deltas[0]).toMatchObject({ amount: "5", decimals: 0 });
@@ -106,5 +124,44 @@ describe("deriveTokenDeltas (FN-ST.13)", () => {
   it("ignores non-transfer events and events without a contract", () => {
     expect(deriveTokenDeltas([ev("approve", G, G2, 1n, CTOKEN)], () => undefined)).toEqual([]);
     expect(deriveTokenDeltas([ev("transfer", G, G2, 1n)], () => undefined)).toEqual([]);
+  });
+});
+
+describe("decodeMeta", () => {
+  it("decodes TransactionMeta v4 transaction events", () => {
+    const contractId = Buffer.alloc(32, 7);
+    const contractEvent = new xdr.ContractEvent({
+      ext: new xdr.ExtensionPoint(0),
+      contractId,
+      type: xdr.ContractEventType.contract(),
+      body: new xdr.ContractEventBody(0, new xdr.ContractEventV0({
+        topics: [
+          xdr.ScVal.scvSymbol("transfer"),
+          Address.fromString(G).toScVal(),
+          Address.fromString(G2).toScVal(),
+        ],
+        data: nativeToScVal(25n, { type: "i128" }),
+      })),
+    });
+    const meta = new xdr.TransactionMeta(4, new xdr.TransactionMetaV4({
+      ext: new xdr.ExtensionPoint(0),
+      txChangesBefore: [],
+      operations: [],
+      txChangesAfter: [],
+      sorobanMeta: null,
+      events: [
+        new xdr.TransactionEvent({
+          stage: xdr.TransactionEventStage.transactionEventStageAfterTx(),
+          event: contractEvent,
+        }),
+      ],
+      diagnosticEvents: [],
+    }));
+
+    const decoded = decodeMeta(meta.toXDR("base64"), true);
+    expect(decoded.success).toBe(true);
+    expect(decoded.events).toHaveLength(1);
+    expect(decoded.events[0]?.contract).toBe(CTOKEN);
+    expect(decoded.events[0]?.topics[0]?.value).toBe("transfer");
   });
 });

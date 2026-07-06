@@ -1,8 +1,10 @@
+import { xdr } from "@stellar/stellar-sdk";
 import { describe, expect, it } from "vitest";
 import { accountInstanceKey } from "../keys.js";
 import { RpcClient } from "../rpc.js";
 import { InMemoryRegistry } from "./registry.js";
 import { inspectAccount, type InspectDeps } from "./inspect-account.js";
+import type { SimulateReadFn } from "./install-state.js";
 import {
   ACCOUNT,
   FixtureBackend,
@@ -30,6 +32,30 @@ describe("inspectAccount (A1)", () => {
     expect(snap.recovery_paths).toEqual([0]);
     expect(snap.signer_registry).toHaveLength(1);
     expect(snap.snapshot_hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("T-A1.5: reads policy install-state via a simulated getter", async () => {
+    const sym = (s: string): xdr.ScVal => xdr.ScVal.scvSymbol(s);
+    const i128 = (n: bigint): xdr.ScVal => xdr.ScVal.scvI128(new xdr.Int128Parts({ hi: xdr.Int64.fromString("0"), lo: xdr.Uint64.fromString(n.toString()) }));
+    const slData = xdr.ScVal.scvMap([
+      new xdr.ScMapEntry({ key: sym("cached_total_spent"), val: i128(1_000_000_000n) }),
+      new xdr.ScMapEntry({ key: sym("period_ledgers"), val: xdr.ScVal.scvU32(120960) }),
+      new xdr.ScMapEntry({ key: sym("spending_history"), val: xdr.ScVal.scvVec([]) }),
+      new xdr.ScMapEntry({ key: sym("spending_limit"), val: i128(5_000_000_000n) }),
+    ]);
+    const simulate: SimulateReadFn = (_c, fn) =>
+      Promise.resolve(fn === "get_spending_limit_data" ? slData : null);
+
+    const snap = await inspectAccount(
+      { account: ACCOUNT },
+      { ...makeInspectDeps(buildFixture()), simulate },
+    );
+    expect(snap.rules[1]?.policies[0]?.install_state).toEqual({
+      spending_limit: "5000000000",
+      period_ledgers: "120960",
+      cached_total_spent: "1000000000",
+      history_len: 0,
+    });
   });
 
   it("T-A1.1-5: fences a hostile rule name", async () => {

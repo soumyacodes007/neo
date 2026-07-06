@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "network": "testnet",
-  "created_at": "2026-07-05T13:25:31.521Z",
+  "created_at": "2026-07-06T13:46:21.602Z",
   "rpc_url": "https://soroban-testnet.stellar.org",
   "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
   "source_account": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
@@ -15,10 +15,21 @@
     "fn": "batch_add_signer",
     "description": "real smart-account-authorized fixture call with an empty signer addition"
   },
-  "tx_hash": "168f87947fdff2193c145feae292936f8f1989f1df9b080d1c6d696142e31653",
+  "tx_hash": "ae7c3c19f47ac2674f64fa4c924efa5f2396ff2f18a1e2233b33f586325695f8",
   "tx_status": "SUCCESS",
-  "ledger": 3448529,
-  "auth_valid_until_ledger": 3449528,
+  "ledger": 3466031,
+  "auth_valid_until_ledger": 3467029,
+  "auth_digest_replay": {
+    "test_id": "T-ST.18-2",
+    "signature_payload_hex": "120849bd756382162c0773ae18f0effdb6726a22e7916444ce9eca274758cd19",
+    "context_rule_ids": [
+      0
+    ],
+    "auth_digest_hex": "7401c133e5c2eea1794f097cfb16f29e9782760993ca8c815e4a7f8bbf9f66fa",
+    "signature_hex": "a86085375db3c450cd2bd911a1e16accb254644ae2c28844e71f4820cbd91245ca4bc5a34a64bff3b6070ed4149bf04d68dd38e89cdf0d9eb3a54e26d270e701",
+    "replay_result": "accepted_on_testnet",
+    "replay_tx_hash": "ae7c3c19f47ac2674f64fa4c924efa5f2396ff2f18a1e2233b33f586325695f8"
+  },
   "latest_smoke_report": {
     "path": "fixtures/testnet/phase5-smoke-report.json",
     "plan_hash": "c14a476b22f8fe2cb5fca64d14c688f7af562a1a8df93562c856264f06d51ecd",
@@ -31,14 +42,14 @@
   },
   "pipeline": {
     "trace": {
-      "tx_hash": "168f87947fdff2193c145feae292936f8f1989f1df9b080d1c6d696142e31653",
+      "tx_hash": "ae7c3c19f47ac2674f64fa4c924efa5f2396ff2f18a1e2233b33f586325695f8",
       "successful": true,
-      "meta_decode_status": "fallback_envelope_only_sdk_meta_v4",
+      "meta_decode_status": "decoded",
       "auth_entries": 1,
       "operations": 1
     },
     "evidence": {
-      "evidence_hash": "2e29e391fcb5af7cb134169cb3abf106c752eaf1b834caa901d4b7738f635e04",
+      "evidence_hash": "10613752dfbfd8a12504931f10d816b6d7fe1ba505c297fd642a4e1ade4d1362",
       "context_count": 1,
       "contexts": [
         {
@@ -51,12 +62,12 @@
       ]
     },
     "ruleset": {
-      "ruleset_hash": "7e5427808c399ac2d16528846d76e8a2e0014899dfb5a4fed0827c8f931431ac",
+      "ruleset_hash": "c2e5730f7fbb9b262ddead4255c0afa7f57a8db3c89c9f86ccbf9335e15b143d",
       "rule_count": 1,
       "unsatisfied_count": 0
     },
     "bypass": {
-      "report_hash": "51e5f2bcfa945cfd3770f868e3ed2e406eaa65417a66c08c226e23ebe59ffbba",
+      "report_hash": "c57e2950e1c29f0db22bbf6035cb3e4533f370f3774c40ec0f761bd9c03e2fce",
       "bypass_count": 2,
       "unknown_count": 0,
       "exhaustive": true

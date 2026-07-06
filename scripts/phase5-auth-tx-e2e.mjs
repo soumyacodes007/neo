@@ -10,7 +10,6 @@ import {
   TransactionTrace,
   canonicalHash,
   synthesizeRuleset,
-  toContractId,
   toLedgerSeq,
 } from "../packages/core/dist/index.js";
 import {
@@ -140,7 +139,8 @@ const authEntries = sim.result?.auth ?? [];
 if (authEntries.length !== 1) throw new Error(`expected one auth entry, got ${authEntries.length}`);
 const latest = await server.getLatestLedger();
 const authValidUntil = latest.sequence + 1000;
-tx.operations[0].auth = [signOzAuthEntry(authEntries[0], authValidUntil, externalSigner, fixture)];
+const signedAuth = signOzAuthEntry(authEntries[0], authValidUntil, externalSigner, fixture);
+tx.operations[0].auth = [signedAuth.entry];
 const signedAuthSim = await server.simulateTransaction(tx);
 if (signedAuthSim.error !== undefined) throw new Error(`signed-auth simulation failed: ${signedAuthSim.error}`);
 const assembled = rpc.assembleTransaction(tx, signedAuthSim).build();
@@ -229,6 +229,15 @@ const out = {
   tx_status: final.status,
   ledger: final.ledger,
   auth_valid_until_ledger: authValidUntil,
+  auth_digest_replay: {
+    test_id: "T-ST.18-2",
+    signature_payload_hex: signedAuth.proof.signature_payload_hex,
+    context_rule_ids: signedAuth.proof.context_rule_ids,
+    auth_digest_hex: signedAuth.proof.auth_digest_hex,
+    signature_hex: signedAuth.proof.signature_hex,
+    replay_result: "accepted_on_testnet",
+    replay_tx_hash: txHash,
+  },
   latest_smoke_report: smokeReport?.plan?.hash !== undefined ? {
     path: path.relative(root, reportPath).replaceAll("\\", "/"),
     plan_hash: smokeReport.plan.hash,
@@ -289,10 +298,19 @@ function signOzAuthEntry(entry, validUntilLedger, signer, fx) {
     }),
   );
   const signaturePayload = hash(preimage.toXDR());
-  const authDigest = computeAuthDigest(Buffer.from(signaturePayload), [0]);
+  const contextRuleIds = [0];
+  const authDigest = computeAuthDigest(Buffer.from(signaturePayload), contextRuleIds);
   const signature = signer.sign(authDigest);
   credentials.signature(encodeAuthPayloadScVal(fx, signature));
-  return clone;
+  return {
+    entry: clone,
+    proof: {
+      signature_payload_hex: Buffer.from(signaturePayload).toString("hex"),
+      context_rule_ids: contextRuleIds,
+      auth_digest_hex: Buffer.from(authDigest).toString("hex"),
+      signature_hex: Buffer.from(signature).toString("hex"),
+    },
+  };
 }
 
 function encodeAuthPayloadScVal(fx, signature) {
@@ -320,7 +338,11 @@ function applySorobanResourceLeeway(transaction) {
   const data = transaction._tx.ext().sorobanData();
   const resources = data.resources();
   resources.instructions(Math.max(resources.instructions(), 20_000_000));
-  resources.readBytes(resources.readBytes() + 1024);
+  if (typeof resources.diskReadBytes === "function") {
+    resources.diskReadBytes(resources.diskReadBytes() + 1024);
+  } else {
+    resources.readBytes(resources.readBytes() + 1024);
+  }
   resources.writeBytes(resources.writeBytes() + 1024);
   data.resourceFee(Hyper.fromString("25000000"));
   transaction._tx.fee(30000000);

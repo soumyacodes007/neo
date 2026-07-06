@@ -30,9 +30,19 @@ function toLedgers(d: Duration): number {
   return "ledgers" in d ? d.ledgers : d.days * LEDGERS_PER_DAY;
 }
 
+export interface ResolvedSymbol {
+  address: string;
+  decimals?: number;
+  source?: string;
+}
+
 export interface ParseIntentDeps {
   /** True iff the contract exists on-chain (footprint probe). */
   existsContract: (contract: ContractId) => Promise<boolean>;
+  /** Curated per-network symbol→address registry (FN-B3.2). Absent ⇒ no symbol resolution. */
+  resolveSymbol?: (symbol: string, network: Network) => ResolvedSymbol | null;
+  /** Read a token's on-chain decimals for reconciliation (FN-B3.3). */
+  readDecimals?: (token: ContractId) => Promise<number | null>;
 }
 
 export interface Clarification {
@@ -56,6 +66,14 @@ export async function parseIntent(
     throw new ToolError("E_INPUT_PROVENANCE_MISSING", "every constraint leaf must carry provenance", {
       details: { paths: missing },
     });
+  }
+
+  // 1.5. Symbol resolution (FN-B3.2): a budget given by symbol resolves through
+  // the curated registry and is ALWAYS echoed as a confirmation — never auto-
+  // accepted (EC-S06/T08). This runs before the schema parse (which needs addresses).
+  const symbolClarifs = collectSymbolClarifications(raw, input.network, deps.resolveSymbol);
+  if (symbolClarifs.length > 0) {
+    return { clarifications_needed: symbolClarifs };
   }
 
   // 2. Structural parse of the loose draft.
@@ -82,6 +100,17 @@ export async function parseIntent(
       throw new ToolError("E_DATA_CONTRACT_NOT_FOUND", `budget token ${b.token} does not exist`, {
         details: { token: b.token },
       });
+    }
+    // Decimals reconciliation (FN-B3.3): the stated decimals must match on-chain,
+    // so cap_i128 is computed against the true scale (EC-S10).
+    if (deps.readDecimals !== undefined) {
+      const onChain = await deps.readDecimals(b.token);
+      if (onChain !== null && onChain !== b.decimals) {
+        clarifications.push({
+          question: `Token ${b.token} has ${String(onChain)} decimals on-chain, but the intent states ${String(b.decimals)}. Confirm the correct scale.`,
+          field: "budgets.decimals",
+        });
+      }
     }
   }
 
@@ -133,6 +162,45 @@ export async function parseIntent(
   });
   const intent_hash = canonicalHash(intent as unknown as JsonValue);
   return { intent, intent_hash };
+}
+
+const C_ADDR_RE = /^C[A-Z2-7]{55}$/;
+
+/**
+ * Collect confirmation clarifications for budgets given by `token_symbol` instead
+ * of a resolved address. A known symbol echoes the resolved address (never auto-
+ * accepted, EC-S06); an unknown symbol requires the user to supply an address.
+ */
+function collectSymbolClarifications(
+  raw: unknown,
+  network: Network,
+  resolveSymbol: ParseIntentDeps["resolveSymbol"],
+): Clarification[] {
+  const out: Clarification[] = [];
+  if (typeof raw !== "object" || raw === null) return out;
+  const budgets = Array.isArray((raw as Record<string, unknown>)["budgets"])
+    ? ((raw as Record<string, unknown>)["budgets"] as unknown[])
+    : [];
+  budgets.forEach((b, i) => {
+    if (typeof b !== "object" || b === null) return;
+    const rec = b as Record<string, unknown>;
+    const sym = rec["token_symbol"];
+    const hasAddr = typeof rec["token"] === "string" && C_ADDR_RE.test(rec["token"]);
+    if (typeof sym !== "string" || hasAddr) return;
+    const resolved = resolveSymbol?.(sym, network) ?? null;
+    out.push(
+      resolved !== null
+        ? {
+            question: `Confirm token '${sym}' resolves to ${resolved.address}${resolved.decimals !== undefined ? ` (decimals ${String(resolved.decimals)})` : ""}${resolved.source !== undefined ? ` [source: ${resolved.source}]` : ""}. Re-submit with 'token' set to this address.`,
+            field: `budgets[${String(i)}].token`,
+          }
+        : {
+            question: `Unknown token symbol '${sym}' on ${network}; provide its contract address.`,
+            field: `budgets[${String(i)}].token`,
+          },
+    );
+  });
+  return out;
 }
 
 /** Scan raw draft for target/budget entries missing a `provenance` field. */

@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy,rustfmt
+          target: wasm32v1-none
+      - name: Fetch stellar-contracts dependency
+        run: |
+          git clone --depth 1 https://github.com/OpenZeppelin/stellar-contracts.git stellar-contracts
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked
+      - run: cargo test --manifest-path rust/Cargo.toml
+      - run: cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings
+      - run: bash scripts/rust-llvm-cov.sh

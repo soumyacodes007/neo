@@ -89,7 +89,7 @@ Goal: end-to-end for the transfer-cap case (Pollywallet-equivalent, no codegen).
 
 ## M4 — Demo & wallet integration
 
-- **WI-4.1** (L) smart-account-kit integration for record→generate→simulate→sign→install on testnet (F1 direct + relayer transports, FN-F1.1). *Tests-first:* `T-F1.1-*` incl. `T-F1.1-9` (@network E2E). *DoD:* a real testnet install of a Tier-1 grant via the wallet, gated by token.
+- **WI-4.1** (L) smart-account-kit integration through the Vol 14 browser companion bridge for record→generate→simulate→sign→install on testnet (F1 direct + relayer transports, FN-F1.1). *Tests-first:* `T-F1.1-*` incl. `T-F1.1-9` (@network E2E) plus `T-WB.*` bridge tests. *DoD:* a real testnet install of a Tier-1 grant via the wallet, gated by token.
 - **WI-4.2** (M) Claude skill package (Vol 00 §3.3 grammar + hard rules). *Tests-first:* skill conformance tests (never calls submit without token; always runs verification). *DoD:* skill drives all three tiers.
 - **WI-4.3** (L) Three documented walkthroughs (Vol 12). *DoD:* each runnable from a clean checkout (`docker pull` + `pnpm install`).
 

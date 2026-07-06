@@ -1,0 +1,66 @@
+{
+  "schema_version": "1",
+  "test_id": "T-ST.18-2",
+  "created_at": "2026-07-06T13:46:21.637Z",
+  "network": "testnet",
+  "account": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+  "signer": {
+    "type": "external",
+    "verifier": "CAL54T3E7LYU3DW7FN625VBO3JBENMKURO6EWE2PTINM4OMHCKJWMIFO",
+    "key_data_hex": "3b6a27bcceb6a42d62a3a8d02a6f0d73653215771de243a63ac048a18b59da29"
+  },
+  "target": {
+    "contract": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+    "fn": "batch_add_signer",
+    "description": "real smart-account-authorized fixture call with an empty signer addition"
+  },
+  "tx_hash": "ae7c3c19f47ac2674f64fa4c924efa5f2396ff2f18a1e2233b33f586325695f8",
+  "ledger": 3466031,
+  "wasm_hashes": {
+    "account": "4a50a65e82b2127b02af8c03e16c335e94aa048653093b6bf81b6c11105bab93",
+    "ed25519_verifier": "197c8fc584b38fb08c4b2a21544eac0b036d8bee0339685f58e38291d2114c93",
+    "threshold_policy": "dceed5cb26885849481e693efe9bc0db46c662b604d1d0f750c17cdb5e9777af"
+  },
+  "proof": {
+    "signature_payload_hex": "120849bd756382162c0773ae18f0effdb6726a22e7916444ce9eca274758cd19",
+    "context_rule_ids": [
+      0
+    ],
+    "auth_digest_hex": "7401c133e5c2eea1794f097cfb16f29e9782760993ca8c815e4a7f8bbf9f66fa",
+    "signature_hex": "a86085375db3c450cd2bd911a1e16accb254644ae2c28844e71f4820cbd91245ca4bc5a34a64bff3b6070ed4149bf04d68dd38e89cdf0d9eb3a54e26d270e701",
+    "replay_result": "accepted_on_real_testnet_smart_account"
+  },
+  "pipeline": {
+    "trace": {
+      "tx_hash": "ae7c3c19f47ac2674f64fa4c924efa5f2396ff2f18a1e2233b33f586325695f8",
+      "successful": true,
+      "meta_decode_status": "decoded",
+      "auth_entries": 1,
+      "operations": 1
+    },
+    "evidence": {
+      "evidence_hash": "10613752dfbfd8a12504931f10d816b6d7fe1ba505c297fd642a4e1ade4d1362",
+      "context_count": 1,
+      "contexts": [
+        {
+          "contract": "CAQDTHE55MGS5XX5GV7QSWXM4BKXCUF5D2E5CHH6T2UDU4NP7Z3O62HG",
+          "fn_name": "batch_add_signer",
+          "arity": 2,
+          "depth": "root",
+          "observed_args": 2
+        }
+      ]
+    },
+    "ruleset": {
+      "ruleset_hash": "c2e5730f7fbb9b262ddead4255c0afa7f57a8db3c89c9f86ccbf9335e15b143d",
+      "rule_count": 1,
+      "unsatisfied_count": 0
+    },
+    "bypass": {
+      "report_hash": "c57e2950e1c29f0db22bbf6035cb3e4533f370f3774c40ec0f761bd9c03e2fce",
+      "bypass_count": 2,
+      "unknown_count": 0,
+      "exhaustive": true
+    }
+  }
+}
