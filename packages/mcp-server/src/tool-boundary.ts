@@ -1,4 +1,5 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { toErrorEnvelope } from "@ozpb/core";
 
 export type ToolHandler<T> = (input: T) => Promise<unknown> | unknown;
 
@@ -8,11 +9,12 @@ export function withToolBoundary<T>(name: string, handler: ToolHandler<T>): (inp
       const result = await handler(input);
       return toolJson({ ok: true, tool: name, result });
     } catch (error) {
+      const envelope = toErrorEnvelope(error);
       return toolJson(
         {
           ok: false,
           tool: name,
-          error: error instanceof Error ? error.message : "E_INTERNAL",
+          ...envelope,
         },
         true,
       );

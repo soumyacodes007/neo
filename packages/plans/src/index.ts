@@ -7,3 +7,5 @@ export * from "./submit-plan.js";
 export * from "./codegen.js";
 export * from "./detect-bypass.js";
 export * from "./fork-engine.js";
+export * from "./recording.js";
+export * from "./authoring.js";

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.strict-policy-use.expected-failure",
+  "created_at": "2026-07-08T21:12:24.733Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "rule_id": 5,
+  "rule_name": "ozpb-expire-5",
+  "matching": {
+    "accepted": false,
+    "expected_failure": true,
+    "phase": "ledger_result",
+    "transaction_hash": "8ea445bf8a8f3a605add241d0d0c4841b7abb7633049f3cec0d757cbc5ed707a",
+    "ledger": 3505876,
+    "final_status": "FAILED",
+    "auth_digest_hex": "2926b62b32d3868a56f487dd81d5e5cf0a972b0651eac87f7c4d4a5f622bfb9c",
+    "context_rule_ids": [
+      5
+    ]
+  },
+  "expected_policy_surface": {
+    "function": "transfer only",
+    "sender": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+    "recipient": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+    "max_amount_stroops": "1000000",
+    "amount_policy": "oz:spending_limit",
+    "recipient_policy": "pb:arg_guard",
+    "function_policy": "pb:function_allowlist",
+    "owner_passkey_required_for_any_unmatched_action": true
+  },
+  "readback": {
+    "rule_count": 6,
+    "snapshot_hash": "071b22ea5abafbaed3423d53956dad2fb8c05e4c967828c7b121403ecb6e9617"
+  },
+  "source_fixtures": {
+    "install": "fixtures\\testnet\\phase8-composed-expired-policy-install-result.json",
+    "plan": "fixtures\\testnet\\phase8-composed-expired-policy-plan.json"
+  }
+}

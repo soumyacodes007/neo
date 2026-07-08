@@ -1,24 +1,33 @@
 /**
- * C3 — `generate-policy-code` (Vol 06 §4). The last resort: generate a minimal
- * custom Soroban Policy contract for a residual constraint that no OZ primitive
- * or `pb_*` policy can express (e.g. a cross-argument invariant). Everything
- * outside the `// >>> GENERATED` … `// <<< GENERATED` markers is frozen template
- * text; only the fenced region is filled, and a manifest maps each region back
- * to its source constraint (for review + the sandbox diff-guard). Build-only —
- * never deploys, no `build.rs`, deps limited to soroban-sdk (+ stellar-accounts).
- *
- * Generated crates use the `GeneratedPolicyError` enum in range 3400–3499.
+ * C3 - `generate-policy-code` (Vol 06 section 4). Last-resort custom Soroban
+ * Policy generation for residual constraints no existing OZ or pb policy can
+ * express. The generated region is fenced and mapped back to constraints in a
+ * manifest. Build-only: never signs, submits, or deploys.
  */
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { ToolError } from "@ozpb/core";
 
-/** A residual the IR can't express but a template can. */
-export type CodegenResidual = {
-  kind: "cross_arg_lt";
-  constraint_id: string;
-  fn_name: string;
-  left_index: number;
-  right_index: number;
-};
+export type CodegenCheck =
+  | { kind: "arg_i128_range"; arg_index: number; min: string; max: string }
+  | { kind: "arg_u32_eq"; arg_index: number; value: number }
+  | { kind: "cross_arg_compare"; left_index: number; op: "lt" | "lte" | "gt" | "gte" | "eq"; right_index: number };
+
+/** A residual the IR cannot bind to OZ/pb but a fixed template can express. */
+export type CodegenResidual =
+  | {
+      kind: "cross_arg_lt";
+      constraint_id: string;
+      fn_name: string;
+      left_index: number;
+      right_index: number;
+    }
+  | {
+      kind: "context_guard";
+      constraint_id: string;
+      fn_name: string;
+      checks: CodegenCheck[];
+    };
 
 export interface CodegenRegion {
   constraint_id: string;
@@ -43,29 +52,24 @@ export interface GeneratedCrate {
 const DEP_ALLOWLIST = ["soroban-sdk", "stellar-accounts"];
 
 export function generatePolicyCode(input: { policyName: string; residual: CodegenResidual }): GeneratedCrate {
-  if (input.residual.kind !== "cross_arg_lt") {
-    throw new ToolError("E_C3_UNEXPRESSIBLE", `no template family for residual kind "${(input.residual as { kind: string }).kind}"`, {
-      suggestion: "narrow the intent, or capture the invariant with an existing pb policy",
+  const residual = normalizeResidual(input.residual);
+  if (residual.checks.length === 0) {
+    throw new ToolError("E_C3_UNEXPRESSIBLE", `no checks supplied for residual "${residual.constraint_id}"`, {
+      suggestion: "capture the invariant with an existing pb policy, or provide a supported codegen check",
     });
   }
+
   const slug = slugify(input.policyName);
   const crate_name = `stellar-generated-${slug}`;
-  const r = input.residual;
-  const marker_start = `// >>> GENERATED: ${r.constraint_id}`;
-  const marker_end = `// <<< GENERATED`;
-
+  const marker_start = `// >>> GENERATED: ${residual.constraint_id}`;
+  const marker_end = "// <<< GENERATED";
   const generated = [
     marker_start,
-    `            // constraint: ${r.constraint_id} — args[${String(r.left_index)}] must be strictly less than args[${String(r.right_index)}]`,
-    `            let left = read_i128(e, &args, ${String(r.left_index)});`,
-    `            let right = read_i128(e, &args, ${String(r.right_index)});`,
-    `            if !(left < right) {`,
-    `                panic_with_error!(e, GeneratedPolicyError::Denied)`,
-    `            }`,
+    ...residual.checks.flatMap((check) => renderCheck(residual.constraint_id, check)),
     marker_end,
   ].join("\n");
 
-  const libRs = renderLib(structName(slug), r.fn_name, generated);
+  const libRs = renderLib(structName(slug), residual.fn_name, generated);
   const cargoToml = renderCargo(crate_name);
 
   return {
@@ -78,8 +82,8 @@ export function generatePolicyCode(input: { policyName: string; residual: Codege
       crate_name,
       regions: [
         {
-          constraint_id: r.constraint_id,
-          semantics: `args[${String(r.left_index)}] < args[${String(r.right_index)}] on ${r.fn_name}`,
+          constraint_id: residual.constraint_id,
+          semantics: `${residual.checks.map(checkSemantics).join("; ")} on ${residual.fn_name}`,
           marker_start,
           marker_end,
         },
@@ -90,8 +94,62 @@ export function generatePolicyCode(input: { policyName: string; residual: Codege
   };
 }
 
+export function renderGeneratedPolicyReview(crate: GeneratedCrate): string {
+  const regions = crate.manifest.regions.map((r) => `- ${r.constraint_id}: ${r.semantics}`).join("\n");
+  const files = crate.files.map((f) => `- ${f.path}`).join("\n");
+  return `# Generated Policy Review
+
+Crate: ${crate.crate_name}
+
+Status: REVIEW REQUIRED before deployment.
+
+Generated regions:
+${regions}
+
+Files:
+${files}
+
+Reviewer checklist:
+- Confirm every generated region maps to the intended constraint.
+- Confirm no file named build.rs exists.
+- Compile with the sandbox before deployment.
+- Run allow/deny simulation before install.
+`;
+}
+
+export async function writeGeneratedPolicyWorkspace(crate: GeneratedCrate, workspaceDir: string): Promise<{ crate_path: string; review_path: string; manifest_path: string }> {
+  const cratePath = resolve(workspaceDir, crate.crate_name);
+  for (const file of crate.files) {
+    const target = resolve(cratePath, file.path);
+    if (!isInside(cratePath, target)) {
+      throw new ToolError("E_BUILD_TEMPLATE", `generated file escaped crate workspace: ${file.path}`);
+    }
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, file.content);
+  }
+  const manifestPath = resolve(cratePath, "codegen_manifest.json");
+  const reviewPath = resolve(cratePath, "REVIEW.md");
+  await writeFile(manifestPath, `${JSON.stringify(crate.manifest, null, 2)}\n`);
+  await writeFile(reviewPath, renderGeneratedPolicyReview(crate));
+  return { crate_path: cratePath, review_path: reviewPath, manifest_path: manifestPath };
+}
+
+function normalizeResidual(residual: CodegenResidual): Extract<CodegenResidual, { kind: "context_guard" }> {
+  if (residual.kind === "context_guard") return residual;
+  if (residual.kind === "cross_arg_lt") {
+    return {
+      kind: "context_guard",
+      constraint_id: residual.constraint_id,
+      fn_name: residual.fn_name,
+      checks: [{ kind: "cross_arg_compare", left_index: residual.left_index, op: "lt", right_index: residual.right_index }],
+    };
+  }
+  throw new ToolError("E_C3_UNEXPRESSIBLE", `no template family for residual kind "${(residual as { kind: string }).kind}"`, {
+    suggestion: "narrow the intent, or capture the invariant with an existing pb policy",
+  });
+}
+
 function renderCargo(name: string): string {
-  // Fixed template; pinned versions matching the sandbox image; NO build.rs.
   return `[package]
 name = "${name}"
 edition = "2021"
@@ -112,7 +170,7 @@ soroban-sdk = { version = "26.1.0", features = ["experimental_spec_shaking_v2", 
 }
 
 function renderLib(structName: string, fnName: string, generated: string): string {
-  return `//! GENERATED custom policy — UNAUDITED. Review the fenced region before use.
+  return `//! GENERATED custom policy - UNAUDITED. Review the fenced region before use.
 #![no_std]
 
 use soroban_sdk::{
@@ -184,6 +242,13 @@ fn read_i128(e: &Env, args: &Vec<Val>, index: u32) -> i128 {
     }
 }
 
+fn read_u32(e: &Env, args: &Vec<Val>, index: u32) -> u32 {
+    match args.get(index) {
+        Some(v) => u32::try_from_val(e, &v).unwrap_or_else(|_| panic_with_error!(e, GeneratedPolicyError::TypeMismatch)),
+        None => panic_with_error!(e, GeneratedPolicyError::Denied),
+    }
+}
+
 #[contract]
 pub struct ${structName};
 
@@ -204,7 +269,66 @@ impl Policy for ${structName} {
 `;
 }
 
-/** Slug-sanitize a name for a crate/path (EC-B03 workspace jail defense). */
+function renderCheck(constraintId: string, check: CodegenCheck): string[] {
+  switch (check.kind) {
+    case "arg_i128_range":
+      assertIntegerLiteral(check.min, "min");
+      assertIntegerLiteral(check.max, "max");
+      return [
+        `            // constraint: ${constraintId} - args[${String(check.arg_index)}] in [${check.min}, ${check.max}]`,
+        `            let value = read_i128(e, &args, ${String(check.arg_index)});`,
+        `            if value < ${check.min}i128 || value > ${check.max}i128 {`,
+        "                panic_with_error!(e, GeneratedPolicyError::Denied)",
+        "            }",
+      ];
+    case "arg_u32_eq":
+      return [
+        `            // constraint: ${constraintId} - args[${String(check.arg_index)}] == ${String(check.value)}`,
+        `            let value = read_u32(e, &args, ${String(check.arg_index)});`,
+        `            if value != ${String(check.value)}u32 {`,
+        "                panic_with_error!(e, GeneratedPolicyError::Denied)",
+        "            }",
+      ];
+    case "cross_arg_compare": {
+      const op = rustOp(check.op);
+      return [
+        `            // constraint: ${constraintId} - args[${String(check.left_index)}] ${op} args[${String(check.right_index)}]`,
+        `            let left = read_i128(e, &args, ${String(check.left_index)});`,
+        `            let right = read_i128(e, &args, ${String(check.right_index)});`,
+        `            if !(left ${op} right) {`,
+        "                panic_with_error!(e, GeneratedPolicyError::Denied)",
+        "            }",
+      ];
+    }
+  }
+}
+
+function checkSemantics(check: CodegenCheck): string {
+  switch (check.kind) {
+    case "arg_i128_range":
+      return `args[${String(check.arg_index)}] in [${check.min}, ${check.max}]`;
+    case "arg_u32_eq":
+      return `args[${String(check.arg_index)}] == ${String(check.value)}`;
+    case "cross_arg_compare":
+      return `args[${String(check.left_index)}] ${rustOp(check.op)} args[${String(check.right_index)}]`;
+  }
+}
+
+function rustOp(op: Extract<CodegenCheck, { kind: "cross_arg_compare" }>["op"]): string {
+  switch (op) {
+    case "lt":
+      return "<";
+    case "lte":
+      return "<=";
+    case "gt":
+      return ">";
+    case "gte":
+      return ">=";
+    case "eq":
+      return "==";
+  }
+}
+
 function slugify(name: string): string {
   const s = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   if (s.length === 0) throw new ToolError("E_INPUT_SCHEMA", "policy name has no valid slug characters");
@@ -219,4 +343,14 @@ function structName(slug: string): string {
       .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
       .join("") + "Policy"
   );
+}
+
+function assertIntegerLiteral(value: string, label: string): void {
+  if (!/^-?\d+$/.test(value)) {
+    throw new ToolError("E_INPUT_SCHEMA", `invalid ${label} integer literal for generated Rust policy`);
+  }
+}
+
+function isInside(root: string, target: string): boolean {
+  return target === root || target.startsWith(`${root}\\`) || target.startsWith(`${root}/`);
 }

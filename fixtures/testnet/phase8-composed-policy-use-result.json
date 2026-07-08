@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.strict-policy-use",
+  "created_at": "2026-07-08T21:08:18.002Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "rule_id": 4,
+  "rule_name": "ozpb-composed-4",
+  "matching": {
+    "accepted": true,
+    "owner_passkey_used": false,
+    "transaction": {
+      "status": "SUCCESS",
+      "hash": "df8cc6af0640ad88a8d531d9f8cd876c2e94c2914dcecd62b8d3cfd937fe4720",
+      "ledger": 3505827,
+      "fn": "transfer",
+      "auth_digest_hex": "222329c2b2655325b09772585f7cb3f64316c141a7afb3921127132b2edd627c",
+      "context_rule_ids": [
+        4
+      ]
+    },
+    "token_deltas": [
+      {
+        "token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "from": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+        "to": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+        "amount": "1000000",
+        "decimals": 0,
+        "source": "event"
+      }
+    ]
+  },
+  "deny_cases": {
+    "amount_plus_one": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "b5f83c8374419344863f2816d3583583369fe86ec9600a4e1fd31ec761fc45e5",
+      "ledger": 3505823,
+      "final_status": "FAILED",
+      "auth_digest_hex": "80b246767a576c2fa332087018a3128380feedcf5c82f7bb021bc6fd4eac040b",
+      "context_rule_ids": [
+        4
+      ]
+    },
+    "wrong_recipient": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "e91467be17005d801a49de7533464386df9a15ef26590cee7b92d7546f8cdcfe",
+      "ledger": 3505824,
+      "final_status": "FAILED",
+      "auth_digest_hex": "f0e134fcc9cae4c3cf1515162277da80dd7edeb2fd962b1312e662a4470c93b0",
+      "context_rule_ids": [
+        4
+      ]
+    },
+    "wrong_function": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "0db1147c62cf2d0197389a559b1901ccc30c6d20ae5a07acb28d757045130478",
+      "ledger": 3505825,
+      "final_status": "FAILED",
+      "auth_digest_hex": "2fbb6e418dcd4a667b579e1fa6c1bb21e4a5c1f3a7e0598e357ddfd3b629000a",
+      "context_rule_ids": [
+        4
+      ]
+    }
+  },
+  "expected_policy_surface": {
+    "function": "transfer only",
+    "sender": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+    "recipient": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+    "max_amount_stroops": "1000000",
+    "amount_policy": "oz:spending_limit",
+    "recipient_policy": "pb:arg_guard",
+    "function_policy": "pb:function_allowlist",
+    "owner_passkey_required_for_any_unmatched_action": true
+  },
+  "readback": {
+    "rule_count": 5,
+    "snapshot_hash": "8b61ee291fb06ceb16efc4d9abb1e16e5edaa2b8d647400a61b4303644cd0002"
+  },
+  "source_fixtures": {
+    "install": "fixtures\\testnet\\phase8-composed-policy-install-result.json",
+    "plan": "fixtures\\testnet\\phase8-composed-policy-plan.json"
+  }
+}

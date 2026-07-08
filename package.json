@@ -26,6 +26,7 @@
     "testnet:phase8-session-key-use": "node scripts/phase8-session-key-use.mjs",
     "testnet:phase8-install-strict-policy": "node scripts/phase8-install-strict-policy.mjs",
     "testnet:phase8-strict-policy-use": "node scripts/phase8-strict-policy-use.mjs",
+    "testnet:phase8-assert-composed-fixtures": "node scripts/assert-phase8-composed-fixtures.mjs",
     "docker:sandbox-smoke": "wsl bash -lc 'bash scripts/docker-sandbox-smoke.sh'",
     "rust:test": "wsl bash -lc 'cargo test --manifest-path rust/Cargo.toml'",
     "rust:clippy": "wsl bash -lc 'cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings'",

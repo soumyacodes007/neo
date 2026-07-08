@@ -6,6 +6,7 @@ const root = process.cwd();
 const ignoredDirs = new Set([
   ".git",
   ".claude",
+  ".tmp",
   "coverage",
   "dist",
   "node_modules",
@@ -50,6 +51,10 @@ function* walk(dir) {
 }
 
 function isIgnored(rel) {
+  const segments = rel.split("/");
+  if (segments.includes("node_modules") || segments.includes("target") || segments.includes("dist")) {
+    return true;
+  }
   return [...ignoredDirs].some((dir) => rel === dir || rel.startsWith(`${dir}/`));
 }
 

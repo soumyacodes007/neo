@@ -68,6 +68,10 @@ export interface ErrorEnvelope {
   };
 }
 
+export type ToolResult<T> =
+  | { readonly ok: true; readonly result: T }
+  | ({ readonly ok: false } & ErrorEnvelope);
+
 const RETRYABLE_CODES: ReadonlySet<ErrorCode> = new Set<ErrorCode>([
   "E_NET_RPC_UNAVAILABLE",
   "E_NET_RATE_LIMITED",
@@ -113,4 +117,18 @@ export class ToolError extends Error {
 
 export function isToolError(e: unknown): e is ToolError {
   return e instanceof ToolError;
+}
+
+export function toErrorEnvelope(error: unknown): ErrorEnvelope {
+  if (isToolError(error)) return error.toEnvelope();
+  const message = error instanceof Error ? error.message : String(error);
+  return new ToolError("E_INTERNAL", message).toEnvelope();
+}
+
+export async function runTool<T>(fn: () => Promise<T> | T): Promise<ToolResult<T>> {
+  try {
+    return { ok: true, result: await fn() };
+  } catch (error) {
+    return { ok: false, ...toErrorEnvelope(error) };
+  }
 }

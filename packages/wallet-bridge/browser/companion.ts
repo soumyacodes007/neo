@@ -347,7 +347,7 @@ async function signAndSubmitRawInstall(
     fee: "1000000",
     networkPassphrase: cfg.network_passphrase,
   })
-    .addOperation(new Contract(action.account).call("add_context_rule", ...encodeRawAddContextRuleArgs(action)))
+    .addOperation(new Contract(action.account).call("add_context_rule", ...encodeRawAddContextRuleArgs(kit, action)))
     .setTimeout(300)
     .build();
   const firstSim = await rpcServer.simulateTransaction(unsignedTx);
@@ -394,7 +394,7 @@ async function signAndSubmitRawInstall(
   return { success: false, hash: hashValue, error: "Timed out waiting for strict install transaction" };
 }
 
-function encodeRawAddContextRuleArgs(action: WalletInstallAction): xdr.ScVal[] {
+function encodeRawAddContextRuleArgs(kit: SmartAccountKit, action: WalletInstallAction): xdr.ScVal[] {
   const context = xdr.ScVal.scvVec([
     xdr.ScVal.scvSymbol("CallContract"),
     Address.fromString(action.target_contract).toScVal(),
@@ -404,12 +404,31 @@ function encodeRawAddContextRuleArgs(action: WalletInstallAction): xdr.ScVal[] {
     Address.fromString(action.session_signer.verifier).toScVal(),
     xdr.ScVal.scvBytes(Buffer.from(action.session_signer.public_key_hex, "hex")),
   ]);
-  const policyEntries = (action.policies?.custom ?? [])
-    .map((policy) => new xdr.ScMapEntry({
+  const policyEntries: xdr.ScMapEntry[] = [];
+  if (action.policies?.simple_threshold) {
+    const policy = action.policies.simple_threshold;
+    policyEntries.push(new xdr.ScMapEntry({
+      key: Address.fromString(policy.address).toScVal(),
+      val: kit.convertPolicyParams("threshold", createThresholdParams(policy.threshold)) as xdr.ScVal,
+    }));
+  }
+  if (action.policies?.spending_limit) {
+    const policy = action.policies.spending_limit;
+    policyEntries.push(new xdr.ScMapEntry({
+      key: Address.fromString(policy.address).toScVal(),
+      val: kit.convertPolicyParams(
+        "spending_limit",
+        createSpendingLimitParams(BigInt(policy.spending_limit_stroops), policy.period_ledgers),
+      ) as xdr.ScVal,
+    }));
+  }
+  for (const policy of action.policies?.custom ?? []) {
+    policyEntries.push(new xdr.ScMapEntry({
       key: Address.fromString(policy.address).toScVal(),
       val: xdr.ScVal.fromXDR(policy.params_xdr_b64, "base64"),
-    }))
-    .sort((a, b) => Buffer.compare(a.key().toXDR(), b.key().toXDR()));
+    }));
+  }
+  policyEntries.sort((a, b) => Buffer.compare(a.key().toXDR(), b.key().toXDR()));
   return [
     context,
     xdr.ScVal.scvString(action.rule_name),

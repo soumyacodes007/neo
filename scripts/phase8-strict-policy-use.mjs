@@ -35,10 +35,12 @@ const {
 
 const rpcUrl = process.env.STELLAR_RPC_URL ?? SMART_ACCOUNT_KIT_TESTNET_DEFAULTS.rpc_url;
 const walletKit = { ...SMART_ACCOUNT_KIT_TESTNET_DEFAULTS, rpc_url: rpcUrl };
-const installFixture = JSON.parse(await fs.readFile(path.join(root, "fixtures", "testnet", "phase8-strict-policy-install-result.json"), "utf8"));
-const strictPlan = JSON.parse(await fs.readFile(path.join(root, "fixtures", "testnet", "phase8-strict-policy-plan.json"), "utf8"));
+const installFixturePath = path.resolve(root, process.env.INSTALL_FIXTURE ?? path.join("fixtures", "testnet", "phase8-strict-policy-install-result.json"));
+const planFixturePath = path.resolve(root, process.env.PLAN_FIXTURE ?? path.join("fixtures", "testnet", "phase8-strict-policy-plan.json"));
+const useOutPath = path.resolve(root, process.env.USE_OUT ?? path.join("fixtures", "testnet", "phase8-strict-policy-use-result.json"));
+const installFixture = JSON.parse(await fs.readFile(installFixturePath, "utf8"));
+const strictPlan = JSON.parse(await fs.readFile(planFixturePath, "utf8"));
 const sessionFixture = JSON.parse(await fs.readFile(path.join(root, ".tmp", "phase8-session-key.json"), "utf8"));
-const outPath = path.join(root, "fixtures", "testnet", "phase8-strict-policy-use-result.json");
 const account = installFixture.account;
 const rule = installFixture.readback.installed_rule;
 const sessionSigner = Keypair.fromSecret(sessionFixture.secret);
@@ -104,17 +106,44 @@ const footprint = {
   })),
 };
 
-const matching = await submitSignedSmartAccountInvocation({
-  contract: walletKit.native_token_contract,
-  fn: "transfer",
-  args: [
-    Address.fromString(account).toScVal(),
-    Address.fromString(recipient).toScVal(),
-    nativeToScVal(amount, { type: "i128" }),
-  ],
-  contextRuleIds: [rule.id],
-  description: "strict matching transfer",
-});
+if (process.env.EXPECT_MATCHING_FAILURE === "true") {
+  const matchingFailure = await submitExpectedFailure({
+    contract: walletKit.native_token_contract,
+    fn: "transfer",
+    args: [
+      Address.fromString(account).toScVal(),
+      Address.fromString(recipient).toScVal(),
+      nativeToScVal(amount, { type: "i128" }),
+    ],
+    contextRuleIds: [rule.id],
+    description: "strict matching transfer expected to fail",
+  });
+  const snapshot = await inspectAccount({ account, resolve_policy_state: false }, { rpc: client, registry, network: "testnet", now: () => new Date().toISOString() });
+  const out = {
+    schema_version: "1",
+    test_id: "phase8.strict-policy-use.expected-failure",
+    created_at: new Date().toISOString(),
+    network: "testnet",
+    rpc_url: rpcUrl,
+    account,
+    rule_id: rule.id,
+    rule_name: rule.name,
+    matching: matchingFailure,
+    expected_policy_surface: strictPlan.guarantees,
+    readback: {
+      rule_count: snapshot.rule_count,
+      snapshot_hash: snapshot.snapshot_hash,
+    },
+    source_fixtures: {
+      install: path.relative(root, installFixturePath),
+      plan: path.relative(root, planFixturePath),
+    },
+  };
+  await fs.mkdir(path.dirname(useOutPath), { recursive: true });
+  await fs.writeFile(useOutPath, `${JSON.stringify(out, null, 2)}\n`);
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(0);
+}
 
 const amountPlusOne = await submitExpectedFailure({
   contract: walletKit.native_token_contract,
@@ -153,6 +182,18 @@ const wrongFunction = await submitExpectedFailure({
   description: "strict deny wrong function",
 });
 
+const matching = await submitSignedSmartAccountInvocation({
+  contract: walletKit.native_token_contract,
+  fn: "transfer",
+  args: [
+    Address.fromString(account).toScVal(),
+    Address.fromString(recipient).toScVal(),
+    nativeToScVal(amount, { type: "i128" }),
+  ],
+  contextRuleIds: [rule.id],
+  description: "strict matching transfer",
+});
+
 const trace = await traceTransaction({ source: { tx_hash: matching.hash } }, { rpc: client, network: "testnet", now: () => new Date().toISOString() });
 const snapshot = await inspectAccount({ account, resolve_policy_state: false }, { rpc: client, registry, network: "testnet", now: () => new Date().toISOString() });
 
@@ -181,8 +222,13 @@ const out = {
     rule_count: snapshot.rule_count,
     snapshot_hash: snapshot.snapshot_hash,
   },
+  source_fixtures: {
+    install: path.relative(root, installFixturePath),
+    plan: path.relative(root, planFixturePath),
+  },
 };
-await fs.writeFile(outPath, `${JSON.stringify(out, null, 2)}\n`);
+await fs.mkdir(path.dirname(useOutPath), { recursive: true });
+await fs.writeFile(useOutPath, `${JSON.stringify(out, null, 2)}\n`);
 console.log(JSON.stringify(out, null, 2));
 
 async function submitSignedSmartAccountInvocation(input) {
@@ -198,17 +244,6 @@ async function submitSignedSmartAccountInvocation(input) {
   const final = await waitForTx(send.hash);
   if (final.status !== "SUCCESS") throw new Error(`${input.description} did not succeed: ${JSON.stringify(final)}`);
   return { status: final.status, hash: send.hash, ledger: final.ledger, fn: input.fn, auth_digest_hex: built.authProof.auth_digest_hex, context_rule_ids: input.contextRuleIds };
-}
-
-async function simulateSignedSmartAccountInvocation(input) {
-  const built = await buildSignedSmartAccountInvocation(input);
-  return {
-    accepted: built.signedAuthSimulationError === undefined,
-    phase: "signed_auth_simulation",
-    ...(built.signedAuthSimulationError ? { error: built.signedAuthSimulationError } : {}),
-    auth_digest_hex: built.authProof.auth_digest_hex,
-    context_rule_ids: input.contextRuleIds,
-  };
 }
 
 async function submitExpectedFailure(input) {
@@ -318,7 +353,12 @@ function appendAuthNonceFootprint(transaction) {
 function appendOzAccountAuthFootprint(transaction) {
   const data = transaction._tx.ext().sorobanData();
   const builder = new SorobanDataBuilder(data);
-  const readWriteKeys = new Set(builder.getReadWrite().map((key) => key.toXDR("base64")));
+  const statefulPolicyKeys = footprint.policyContracts
+    .filter((policy) => policy.address === walletKit.spending_limit_policy_address)
+    .map((policy) => policyAccountContextKey(policy.address, account, footprint.ruleId));
+  const readWrite = uniqueLedgerKeys([...builder.getReadWrite(), ...statefulPolicyKeys]);
+  data.resources().footprint().readWrite(readWrite);
+  const readWriteKeys = new Set(readWrite.map((key) => key.toXDR("base64")));
   const readOnly = uniqueLedgerKeys([
     ...builder.getReadOnly(),
     accountStorageKey("ContextRuleData", xdr.ScVal.scvU32(footprint.ruleId)),

@@ -47,6 +47,7 @@ const tier1Intent = (): PolicyIntent =>
   });
 
 const fakeEncode = (_c: PolicyClassification, _p: Record<string, unknown>): XdrBase64 => toXdrBase64("AAAAAA==");
+const scv = (label: string): XdrBase64 => toXdrBase64(Buffer.from(label).toString("base64"));
 
 describe("synthesizeRuleset (C1)", () => {
   it("T-C1.1-1: Tier-1 intent → pool rule + USDC rule with expiry", () => {
@@ -124,6 +125,58 @@ describe("synthesizeRuleset (C1)", () => {
     });
     expect(rs.based_on.evidence_hash).toBe(evidence.evidence_hash);
   });
+
+  it("derives a transfer amount cap from recorded evidence when the intent has no explicit budget", () => {
+    const intent = PolicyIntent.parse({
+      ...tier1Intent(),
+      targets: [{
+        contract: C_USDC,
+        label: "USDC",
+        functions: [{ name: "transfer", arg_constraints: [] }],
+        provenance: { kind: "user_intent", quote: "repeat this transfer" },
+      }],
+      budgets: [],
+    });
+    const evidence = AuthContextSet.parse({
+      schema_version: "1",
+      account: C_ACCOUNT,
+      network: "testnet",
+      polarity: "positive",
+      contexts: [{
+        context_type: { kind: "call_contract", address: C_USDC },
+        contract: C_USDC,
+        fn_name: "transfer",
+        arity: 3,
+        depth: "root",
+        token_meta: { token: C_USDC, decimals: 7, symbol: "USDC" },
+        arg_summary: [
+          { index: 0, sc_type: "address", distinct_values_scval_b64: [scv("from")], observed_count: 1 },
+          { index: 1, sc_type: "address", distinct_values_scval_b64: [scv("recipient")], observed_count: 1 },
+          { index: 2, sc_type: "i128", distinct_values_scval_b64: [scv("5000000000")], observed_count: 1, numeric_range: { min: "5000000000", max: "5000000000" } },
+        ],
+        occurrences: [{
+          tx_hash: "55".repeat(32),
+          ledger: 2000,
+          context_index: 0,
+          depth: "root",
+          successful: true,
+          provenance: { kind: "observed_tx", tx_hash: "55".repeat(32), context_index: 0 },
+        }],
+      }],
+      window: { from_ledger: 2000, to_ledger: 2000 },
+      evidence_hash: "66".repeat(32),
+    });
+    const rs = synthesizeRuleset({ intent, intentHash: "x", evidence }, { currentLedger: 1000 });
+    const rule = rs.rules.find((r) => r.context_type.kind === "call_contract" && r.context_type.address === C_USDC)!;
+    expect(rule.constraints.find((c) => c.kind === "amount_cap")).toMatchObject({
+      token: C_USDC,
+      cap_i128: "5000000000",
+      source: { kind: "transfer_arg2" },
+      window: { ledgers: 120960 },
+    });
+    const matched = matchPolicies(rs, { encodeInstallParams: fakeEncode }).ruleset.rules[0]!;
+    expect(matched.policy_bindings.some((b) => b.binding.kind === "existing" && b.binding.classification === "oz:spending_limit")).toBe(true);
+  });
 });
 
 describe("matchPolicies (C2)", () => {
@@ -186,5 +239,68 @@ describe("generateTests (D2)", () => {
     expect(() => generateTests({ ruleset: rs })).toThrow(/COVERAGE_GAP|not exercised/i);
     // …unless gaps are explicitly permitted.
     expect(generateTests({ ruleset: rs }, { allowCoverageGaps: true }).length).toBeGreaterThan(0);
+  });
+
+  it("generates amount+epsilon and arg-tamper deny cases when encoded evidence is available", () => {
+    const rs = synthesizeRuleset(
+      {
+        intent: PolicyIntent.parse({
+          ...tier1Intent(),
+          targets: [{
+            contract: C_USDC,
+            label: "USDC",
+            functions: [{ name: "transfer", arg_constraints: [] }],
+            provenance: { kind: "user_intent", quote: "transfer USDC" },
+          }],
+          budgets: [{
+            token: C_USDC,
+            cap: "500",
+            decimals: 7,
+            window: { ledgers: 17280 },
+            scope: "outflow_via_transfer",
+            provenance: { kind: "user_intent", quote: "cap transfer" },
+          }],
+        }),
+        intentHash: "x",
+        evidence: AuthContextSet.parse({
+          schema_version: "1",
+          account: C_ACCOUNT,
+          network: "testnet",
+          polarity: "positive",
+          contexts: [{
+            context_type: { kind: "call_contract", address: C_USDC },
+            contract: C_USDC,
+            fn_name: "transfer",
+            arity: 3,
+            depth: "root",
+            arg_summary: [
+              { index: 0, sc_type: "address", distinct_values_scval_b64: [scv("from")], observed_count: 1 },
+              { index: 1, sc_type: "address", distinct_values_scval_b64: [scv("recipient")], observed_count: 1 },
+              { index: 2, sc_type: "i128", distinct_values_scval_b64: [scv("500")], observed_count: 1, numeric_range: { min: "5000000000", max: "5000000000" } },
+            ],
+            occurrences: [{
+              tx_hash: "33".repeat(32),
+              ledger: 2000,
+              context_index: 0,
+              depth: "root",
+              successful: true,
+              provenance: { kind: "observed_tx", tx_hash: "33".repeat(32), context_index: 0 },
+            }],
+          }],
+          window: { from_ledger: 2000, to_ledger: 2000 },
+          evidence_hash: "44".repeat(32),
+        }),
+      },
+      { currentLedger: 1000 },
+    );
+    const cases = generateTests(
+      { ruleset: rs },
+      {
+        encodeI128: (v) => scv(`i128:${v}`),
+        mutateScVal: (value, hint) => scv(`${hint}:${value}:mutated`),
+      },
+    );
+    expect(cases.some((c) => c.origin.kind === "mutation" && c.origin.operator === "amount_plus_epsilon")).toBe(true);
+    expect(cases.some((c) => c.origin.kind === "mutation" && c.origin.operator === "arg_tamper")).toBe(true);
   });
 });

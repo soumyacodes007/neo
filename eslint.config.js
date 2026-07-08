@@ -6,6 +6,7 @@ export default tseslint.config(
     ignores: [
       "**/dist/**",
       "**/coverage/**",
+      "**/.tmp/**",
       "**/node_modules/**",
       "**/rust/target/**",
       "**/stellar-contracts/**",

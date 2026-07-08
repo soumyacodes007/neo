@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ERROR_CODES, isToolError, ToolError } from "./errors.js";
+import { ERROR_CODES, isToolError, runTool, toErrorEnvelope, ToolError } from "./errors.js";
 
 describe("ToolError / taxonomy (Vol 01 §2.5)", () => {
   it("serializes to the wire envelope", () => {
@@ -44,5 +44,28 @@ describe("ToolError / taxonomy (Vol 01 §2.5)", () => {
     for (const code of ERROR_CODES) {
       expect(new ToolError(code, "m").code).toBe(code);
     }
+  });
+
+  it("serializes unexpected exceptions as E_INTERNAL envelopes", () => {
+    const env = toErrorEnvelope(new Error("boom"));
+    expect(env.error).toEqual({
+      code: "E_INTERNAL",
+      message: "boom",
+      retryable: false,
+    });
+  });
+
+  it("runTool returns stable ok/error envelopes for agent adapters", async () => {
+    await expect(runTool(() => 7)).resolves.toEqual({ ok: true, result: 7 });
+    await expect(runTool(() => {
+      throw new ToolError("E_DOMAIN_NO_EVIDENCE", "no evidence");
+    })).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "E_DOMAIN_NO_EVIDENCE",
+        message: "no evidence",
+        retryable: false,
+      },
+    });
   });
 });

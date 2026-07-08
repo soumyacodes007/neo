@@ -21,7 +21,7 @@ import { decodeAuthEntries, decodeMeta, decodeTransactionEnvelope, deriveTokenDe
 import type { RpcClient } from "../rpc.js";
 
 export interface TraceDeps {
-  rpc: RpcClient;
+  rpc?: RpcClient;
   network: Network;
   now: () => string;
   /** Optional token metadata lookup (symbol/decimals); failure drops metadata only. */
@@ -49,6 +49,9 @@ export async function traceTransaction(input: TraceInput, deps: TraceDeps): Prom
   let txHash: TxHash | undefined;
 
   if ("tx_hash" in src) {
+    if (deps.rpc === undefined) {
+      throw new ToolError("E_NET_RPC_UNAVAILABLE", "rpc client is required when tracing by transaction hash");
+    }
     const hash = toTxHash(src.tx_hash);
     const tx = await deps.rpc.getTransaction(hash);
     if (tx.envelopeXdr === undefined) {

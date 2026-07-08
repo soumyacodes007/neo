@@ -22,6 +22,47 @@ export interface RevocationInput {
   accountSnapshot: AccountSnapshot;
 }
 
+export interface RuleRevocationInput {
+  account: CandidateRuleset["account"];
+  network: CandidateRuleset["network"];
+  ruleId: number;
+  currentLedger: number;
+  mode?: "expire_now" | "remove";
+}
+
+export function buildRuleRevocationStep(input: RuleRevocationInput): PlanStep {
+  const mode = input.mode ?? "expire_now";
+  const args = mode === "expire_now"
+    ? [xdr.ScVal.scvU32(input.ruleId), xdr.ScVal.scvU32(input.currentLedger)]
+    : [xdr.ScVal.scvU32(input.ruleId)];
+  const fn = mode === "expire_now" ? "update_context_rule_valid_until" : "remove_context_rule";
+  const { envelopeXdr } = buildUnsignedInvoke(input.account, fn, args, input.network);
+
+  return {
+    order: 1,
+    kind: "invoke",
+    description: mode === "expire_now"
+      ? `Expire context rule id ${String(input.ruleId)} immediately`
+      : `Remove context rule id ${String(input.ruleId)}`,
+    tx_xdr_unsigned: toXdrBase64(envelopeXdr),
+    invoke: {
+      contract: input.account,
+      fn,
+      args_scval_b64: args.map((a) => toXdrBase64(a.toXDR("base64"))),
+    },
+    auth_requirements: [
+      {
+        rule_id: 0,
+        signers: [],
+        digest_note: "sign sha256(signature_payload || context_rule_ids.to_xdr()) — see Vol 03 §digest",
+      },
+    ],
+    simulated: { fee_stroops: "0", footprint_hash: "", at_ledger: toLedgerSeq(input.currentLedger) },
+    reversible: false,
+    irreversibility_note: "revocation is intentionally one-way; recreate the grant through the install flow if needed",
+  };
+}
+
 export function buildRevocationPlan(input: RevocationInput): RevocationPlan {
   const account = input.ruleset.account;
   const steps: PlanStep[] = [];

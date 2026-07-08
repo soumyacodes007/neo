@@ -89,7 +89,9 @@ export function synthesizeRuleset(input: SynthesizeInput, deps: SynthesizeDeps):
     const rule = ruleFor(ctx.contract);
     const prov = ctx.occurrences[0]?.provenance ?? { kind: "default", rule: "evidence-without-occurrence" };
     addFunction(rule, ctx.fn_name, prov);
+    const transferAmount = evidenceTransferAmountCap(ctx, intent);
     for (const arg of ctx.arg_summary) {
+      if (transferAmount !== undefined && ctx.fn_name === "transfer" && arg.index === 2) continue;
       if (arg.distinct_values_scval_b64.length === 0) continue;
       rule.constraints.push({
         kind: "arg_predicate",
@@ -101,6 +103,9 @@ export function synthesizeRuleset(input: SynthesizeInput, deps: SynthesizeDeps):
         id: `${String(rule.seq)}:arg:${ctx.fn_name}:${String(arg.index)}`,
         provenance: ctx.occurrences.map((o) => o.provenance),
       });
+    }
+    if (transferAmount !== undefined) {
+      rule.constraints.push(transferAmount);
     }
   }
 
@@ -196,6 +201,23 @@ function dedupProvenance(provenance: Provenance[]): Provenance[] {
   const byKey = new Map<string, Provenance>();
   for (const p of provenance) byKey.set(JSON.stringify(p), p);
   return [...byKey.values()].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+}
+
+function evidenceTransferAmountCap(ctx: AuthContextSet["contexts"][number], intent: PolicyIntent): Constraint | undefined {
+  if (ctx.fn_name !== "transfer") return undefined;
+  if (intent.budgets.some((b) => b.token === ctx.contract)) return undefined;
+  const amountArg = ctx.arg_summary.find((arg) => arg.index === 2);
+  const max = amountArg?.numeric_range?.max;
+  if (max === undefined) return undefined;
+  return {
+    kind: "amount_cap",
+    token: ctx.contract,
+    cap_i128: max,
+    window: { ledgers: intent.expiry.ledgers },
+    source: { kind: "transfer_arg2" },
+    id: `evidence:${ctx.contract}:transfer:amount_cap`,
+    provenance: ctx.occurrences.map((o) => o.provenance),
+  };
 }
 
 export type { CandidateRuleset, LedgerSeq };

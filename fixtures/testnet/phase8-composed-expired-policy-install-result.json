@@ -1,0 +1,91 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.composed-policy-install",
+  "created_at": "2026-07-08T21:10:20.913Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "plan_hash": "94712ce9a66cf16d2e78fa7730a183e7c4806404d39f32c836cab3d93386c27d",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "wallet": {
+    "sdk": "smart-account-kit",
+    "sdk_version": "0.2.10",
+    "signer_kind": "webauthn",
+    "public_signer_ref": "2qMSQEyUL3-nVCVp_KBmZg",
+    "public_key_hint": "04a81b100972bb28acd11e8fdb187d5a0e1b90060b4f2c4e53ea40c64814ca5ac598e876a53d314b38a14bb8f6e5db8e4bd7570b2e7a531876889c85b431aada8c"
+  },
+  "transaction": {
+    "hash": "8262db2a49ad1cbb71e74f895cb821857ffed14abf897c356070613e177b6a2e",
+    "ledger": 3505851,
+    "source": "browser_submitted"
+  },
+  "readback": {
+    "before_rule_count": 5,
+    "after_rule_count": 6,
+    "installed_rule": {
+      "id": 5,
+      "name": "ozpb-expire-5",
+      "context_type": {
+        "kind": "call_contract",
+        "address": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+      },
+      "valid_until_ledger": 3505872,
+      "signers": [
+        {
+          "signer": {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "ANSyptOr0iI9aTL3GrC4/MDrA5bfZXNMsVsH6HEJYV4=",
+            "verifier_kind": "unknown"
+          },
+          "signer_id": 1,
+          "canonical_hash": "91d7f8c33fddc8981b29a8b853562df97f521e284327618cc726db02de4ce2ef"
+        }
+      ],
+      "policies": [
+        {
+          "address": "CADIBF4HZOMPVC5STXKCUAMAPGGJYI5EXMWEESKBSRAWOCBLSA22IKMZ",
+          "policy_id": 1,
+          "classification": "unknown",
+          "wasm_hash": "927587ff25c5e6eebc8b69293414461eb3c7139b8adf03a6d0bb6ab20bdf43a5"
+        },
+        {
+          "address": "CBBZ2XP4LBDEO2EELTZKJSPQZDREFKCULL6CKIUQO53S42RZABOYQUK3",
+          "policy_id": 3,
+          "classification": "unknown",
+          "wasm_hash": "dfe58cb65409c25084706e71fde3a12dfadbafb93db3d3225fe8919f488d8cc8"
+        },
+        {
+          "address": "CBZUMOD3JEQOFYTUM5SDSBNOAOP25VLS2DDKDCG6T4RQPR2KE6SRC6YH",
+          "policy_id": 2,
+          "classification": "unknown",
+          "wasm_hash": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af"
+        }
+      ],
+      "privilege": "scoped",
+      "status": "active"
+    },
+    "snapshot_hash": "afe976d4cf323bc25eb42083bace3de182663a3ff28f071b955e50989ac20395"
+  },
+  "trace": {
+    "tx_hash": "8262db2a49ad1cbb71e74f895cb821857ffed14abf897c356070613e177b6a2e",
+    "ledger": 3505851,
+    "successful": true,
+    "auth_entries": 1
+  },
+  "guarantees": {
+    "function": "transfer only",
+    "sender": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+    "recipient": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+    "max_amount_stroops": "1000000",
+    "amount_policy": "oz:spending_limit",
+    "recipient_policy": "pb:arg_guard",
+    "function_policy": "pb:function_allowlist",
+    "owner_passkey_required_for_any_unmatched_action": true
+  },
+  "source_plan": "fixtures\\testnet\\phase8-composed-expired-policy-plan.json",
+  "session_signer": {
+    "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+    "public_key_hex": "00d4b2a6d3abd2223d6932f71ab0b8fcc0eb0396df65734cb15b07e87109615e",
+    "secret_storage": ".tmp\\phase8-session-key.json"
+  }
+}
