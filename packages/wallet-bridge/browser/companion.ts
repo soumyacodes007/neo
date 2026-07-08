@@ -7,7 +7,7 @@ import {
   SmartAccountKit,
 } from "smart-account-kit";
 import { startAuthentication } from "@simplewebauthn/browser";
-import { Address, hash, xdr } from "@stellar/stellar-sdk";
+import { Address, Contract, Operation, Transaction, TransactionBuilder, hash, rpc, xdr } from "@stellar/stellar-sdk";
 import base64url from "base64url";
 import { Buffer } from "buffer";
 
@@ -64,6 +64,11 @@ interface WalletInstallAction {
       spending_limit_stroops: string;
       period_ledgers: number;
     };
+    custom?: Array<{
+      address: string;
+      classification: string;
+      params_xdr_b64: string;
+    }>;
   };
 }
 
@@ -251,6 +256,28 @@ async function signInstallPlan(): Promise<void> {
       installKnownPasskeySigner(kit, action.owner_credential_id, request.payload.expected_signer.public_key_hint);
     }
 
+    if ((action.policies?.custom?.length ?? 0) > 0) {
+      const submit = await signAndSubmitRawInstall(kit, action, connected.credentialId);
+      if (!submit.success || !submit.hash) {
+        throw new Error(submit.error ?? "Strict install transaction failed");
+      }
+      const step = request.payload.steps[0] ?? { order: 1, step_hash: "install_session_rule" };
+      await postResult({
+        ...resultBase(
+          connected.contractId,
+          connected.credentialId,
+          connected.credential?.publicKey ? bytesToHex(connected.credential.publicKey) : request.payload.expected_signer.public_key_hint,
+        ),
+        signed_steps: [{
+          order: step.order,
+          step_hash: step.step_hash,
+          tx_hash: submit.hash,
+          ledger: submit.ledger,
+        }],
+      });
+      return;
+    }
+
     const context = createCallContractContext(action.target_contract);
     const sessionSigner = createEd25519Signer(action.session_signer.verifier, hexToBytes(action.session_signer.public_key_hex));
     const policies = new Map<string, unknown>();
@@ -264,6 +291,9 @@ async function signInstallPlan(): Promise<void> {
         "spending_limit",
         createSpendingLimitParams(BigInt(policy.spending_limit_stroops), policy.period_ledgers),
       ));
+    }
+    for (const policy of action.policies?.custom ?? []) {
+      policies.set(policy.address, xdr.ScVal.fromXDR(policy.params_xdr_b64, "base64"));
     }
 
     const tx = await kit.rules.add(
@@ -297,6 +327,96 @@ async function signInstallPlan(): Promise<void> {
   } catch (error: unknown) {
     setStatus(messageOf(error), "error");
   }
+}
+
+async function signAndSubmitRawInstall(
+  kit: SmartAccountKit,
+  action: WalletInstallAction,
+  credentialId: string,
+): Promise<{ success: boolean; hash?: string; ledger?: number; error?: string }> {
+  const cfg = request.payload.wallet_kit;
+  if (!cfg) throw new Error("Missing smart-account-kit config");
+  const rpcServer = (kit as unknown as { rpc?: rpc.Server }).rpc;
+  const deployerKeypair = (kit as unknown as { deployerKeypair?: { publicKey: () => string; sign: (data: Buffer) => Buffer } }).deployerKeypair;
+  if (!rpcServer || !deployerKeypair) {
+    throw new Error("smart-account-kit internals needed for raw strict install are unavailable");
+  }
+
+  const source = await rpcServer.getAccount(deployerKeypair.publicKey());
+  const unsignedTx = new TransactionBuilder(source, {
+    fee: "1000000",
+    networkPassphrase: cfg.network_passphrase,
+  })
+    .addOperation(new Contract(action.account).call("add_context_rule", ...encodeRawAddContextRuleArgs(action)))
+    .setTimeout(300)
+    .build();
+  const firstSim = await rpcServer.simulateTransaction(unsignedTx);
+  if ("error" in firstSim) throw new Error(`Strict install simulation failed: ${firstSim.error}`);
+  const authEntries = firstSim.result?.auth ?? [];
+  if (authEntries.length !== 1) throw new Error(`expected one strict install auth entry, got ${String(authEntries.length)}`);
+  const signedEntry = await signKnownWebAuthnAuthEntry(authEntries[0], {
+    credentialId,
+    publicKeyHex: request.payload.expected_signer.public_key_hint ?? "",
+    webauthnVerifierAddress: cfg.webauthn_verifier_address,
+    rpcUrl: cfg.rpc_url,
+    networkPassphrase: cfg.network_passphrase,
+    contextRuleIds: [0],
+  });
+  const hostFunc = unsignedTx.operations[0].type === "invokeHostFunction"
+    ? unsignedTx.operations[0].func
+    : undefined;
+  if (!hostFunc) throw new Error("strict install operation is not invokeHostFunction");
+  const resimSource = await rpcServer.getAccount(deployerKeypair.publicKey());
+  const resimTx = new TransactionBuilder(resimSource, {
+    fee: "1000000",
+    networkPassphrase: cfg.network_passphrase,
+  })
+    .addOperation(Operation.invokeHostFunction({ func: hostFunc, auth: [signedEntry] }))
+    .setTimeout(300)
+    .build();
+  const resim = await rpcServer.simulateTransaction(resimTx);
+  if ("error" in resim) throw new Error(`Strict install re-simulation failed: ${resim.error}`);
+  const prepared = rpc.assembleTransaction(resimTx, resim).build() as Transaction;
+  prepared.sign(deployerKeypair as never);
+  const send = await rpcServer.sendTransaction(prepared);
+  if (send.status !== "PENDING" && send.status !== "DUPLICATE") {
+    return { success: false, hash: "hash" in send ? send.hash : undefined, error: JSON.stringify(send) };
+  }
+  const hashValue = send.hash;
+  for (let i = 0; i < 40; i++) {
+    const tx = await rpcServer.getTransaction(hashValue);
+    if (tx.status === "SUCCESS") return { success: true, hash: hashValue, ledger: tx.ledger };
+    if (tx.status === "FAILED" || tx.status === "ERROR") {
+      return { success: false, hash: hashValue, error: JSON.stringify(tx) };
+    }
+    await sleep(1500);
+  }
+  return { success: false, hash: hashValue, error: "Timed out waiting for strict install transaction" };
+}
+
+function encodeRawAddContextRuleArgs(action: WalletInstallAction): xdr.ScVal[] {
+  const context = xdr.ScVal.scvVec([
+    xdr.ScVal.scvSymbol("CallContract"),
+    Address.fromString(action.target_contract).toScVal(),
+  ]);
+  const signer = xdr.ScVal.scvVec([
+    xdr.ScVal.scvSymbol("External"),
+    Address.fromString(action.session_signer.verifier).toScVal(),
+    xdr.ScVal.scvBytes(Buffer.from(action.session_signer.public_key_hex, "hex")),
+  ]);
+  const policyEntries = (action.policies?.custom ?? [])
+    .map((policy) => new xdr.ScMapEntry({
+      key: Address.fromString(policy.address).toScVal(),
+      val: xdr.ScVal.fromXDR(policy.params_xdr_b64, "base64"),
+    }))
+    .sort((a, b) => Buffer.compare(a.key().toXDR(), b.key().toXDR()));
+  return [
+    context,
+    xdr.ScVal.scvString(action.rule_name),
+    xdr.ScVal.scvU32(action.valid_until_ledger),
+    xdr.ScVal.scvVec([signer]),
+    xdr.ScVal.scvMap(policyEntries),
+  ];
 }
 
 function installKnownPasskeySigner(kit: SmartAccountKit, credentialId: string, publicKeyHex: string): void {
@@ -548,6 +668,10 @@ async function postResult(result: unknown): Promise<void> {
     body: JSON.stringify(result),
   });
   setStatus(res.ok ? "Approved. You can return to Claude Desktop." : `Approval failed: ${await res.text()}`, res.ok ? "success" : "error");
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function setStatus(text: string, className = ""): void {

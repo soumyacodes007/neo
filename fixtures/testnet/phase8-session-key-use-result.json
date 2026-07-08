@@ -1,0 +1,140 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.session-key-use-and-fallback",
+  "created_at": "2026-07-08T19:22:23.340Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "installed_rule_id": 1,
+  "installed_rule_name": "ozpb-1",
+  "session_signer": {
+    "type": "external",
+    "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+    "public_key_hex": "00d4b2a6d3abd2223d6932f71ab0b8fcc0eb0396df65734cb15b07e87109615e",
+    "signer_id": 1
+  },
+  "matching_session_key_action": {
+    "description": "native token transfer signed only by the Ed25519 session key",
+    "owner_passkey_used": false,
+    "recipient": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+    "amount_stroops": "1000000",
+    "transaction": {
+      "status": "SUCCESS",
+      "hash": "24b75f99dfa0001a55d2a464e8be5724859f1c870412d521337a478d0336d774",
+      "ledger": 3504557,
+      "fn": "transfer",
+      "auth_digest_hex": "6abb82c771832ce7f1a3abf950e2a2edc1569beb199b8513d1a4c2db0c85cce7",
+      "context_rule_ids": [
+        1
+      ]
+    },
+    "trace": {
+      "tx_hash": "24b75f99dfa0001a55d2a464e8be5724859f1c870412d521337a478d0336d774",
+      "ledger": 3504557,
+      "successful": true,
+      "auth_entries": 1,
+      "token_deltas": [
+        {
+          "token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "from": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+          "to": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+          "amount": "1000000",
+          "decimals": 0,
+          "source": "event"
+        }
+      ]
+    }
+  },
+  "changed_action_fallbacks": {
+    "amount_plus_one": {
+      "submitted": false,
+      "route_decision": {
+        "covered": false,
+        "reason": "amount_exceeds_policy"
+      },
+      "fallback": "human_passkey_required"
+    },
+    "wrong_function": {
+      "submitted": false,
+      "route_decision": {
+        "covered": false,
+        "reason": "no_matching_policy"
+      },
+      "session_signed_simulation": {
+        "accepted": true,
+        "phase": "signed_auth_simulation",
+        "auth_digest_hex": "ea20becfdf0a6a1f08c5c6a854d058ac520570b74da40ac00ff5dfd1c63841cc",
+        "context_rule_ids": [
+          1
+        ]
+      },
+      "fallback": "human_passkey_required"
+    },
+    "wrong_contract": {
+      "submitted": false,
+      "route_decision": {
+        "covered": false,
+        "reason": "no_matching_policy"
+      },
+      "session_signed_simulation": {
+        "accepted": true,
+        "phase": "signed_auth_simulation",
+        "auth_digest_hex": "fb1c8f55986efa82b9ca258aea069e4d6af93bc3a57b480a4140a8dcc409c567",
+        "context_rule_ids": [
+          1
+        ]
+      },
+      "fallback": "human_passkey_required"
+    }
+  },
+  "route_decisions": {
+    "matching_transfer": {
+      "covered": true,
+      "pattern": {
+        "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "fn": "transfer",
+        "max_amount_i128": "1000000",
+        "valid_until_ledger": 3521660
+      },
+      "reason": "matched_policy"
+    },
+    "amount_plus_one": {
+      "covered": false,
+      "reason": "amount_exceeds_policy"
+    },
+    "wrong_function": {
+      "covered": false,
+      "reason": "no_matching_policy"
+    },
+    "wrong_contract": {
+      "covered": false,
+      "reason": "no_matching_policy"
+    }
+  },
+  "strict_policy_plan": {
+    "fixture": "fixtures\\testnet\\phase8-strict-policy-plan.json",
+    "status": "planned_not_installed",
+    "rule_name": "ozpb-strict-2",
+    "policies": [
+      {
+        "classification": "pb:function_allowlist",
+        "address": "CBZUMOD3JEQOFYTUM5SDSBNOAOP25VLS2DDKDCG6T4RQPR2KE6SRC6YH"
+      },
+      {
+        "classification": "pb:arg_guard",
+        "address": "CADIBF4HZOMPVC5STXKCUAMAPGGJYI5EXMWEESKBSRAWOCBLSA22IKMZ"
+      }
+    ],
+    "guarantees": {
+      "function": "transfer only",
+      "sender": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+      "recipient": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+      "max_amount_stroops": "1000000",
+      "owner_passkey_required_for_any_unmatched_action": true
+    }
+  },
+  "readback": {
+    "rule_count": 2,
+    "snapshot_hash": "495ef64ebe48a29bbf8c74803eacc81ead82954bc3fbafccc406e3aee63a34eb"
+  }
+}

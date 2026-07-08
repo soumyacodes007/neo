@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.strict-policy-use",
+  "created_at": "2026-07-08T19:31:27.156Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "rule_id": 2,
+  "rule_name": "ozpb-strict-2",
+  "matching": {
+    "accepted": true,
+    "owner_passkey_used": false,
+    "transaction": {
+      "status": "SUCCESS",
+      "hash": "8bfa84af3cbd2de57c95bdbae9bdd1e8d1200c14aa42014a02fbcd161134db27",
+      "ledger": 3504663,
+      "fn": "transfer",
+      "auth_digest_hex": "5691a8db3d197de1b57e14701e78ff95d6cff00053832d4613113681916c0055",
+      "context_rule_ids": [
+        2
+      ]
+    },
+    "token_deltas": [
+      {
+        "token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "from": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+        "to": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+        "amount": "1000000",
+        "decimals": 0,
+        "source": "event"
+      }
+    ]
+  },
+  "deny_cases": {
+    "amount_plus_one": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "66c68bd03c251096ebf77d1acb8695194c754ab4ee6fc9416f82e465d6fcecd6",
+      "ledger": 3504664,
+      "final_status": "FAILED",
+      "auth_digest_hex": "155d0004bd3ca63abf846fcb43dbc01a19cab6b78674039272e9c2a757656817",
+      "context_rule_ids": [
+        2
+      ]
+    },
+    "wrong_recipient": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "903aa7df4fb738175fc2aae3b5ca3199c24474ae6f0b6764300e0cea85616e28",
+      "ledger": 3504665,
+      "final_status": "FAILED",
+      "auth_digest_hex": "ddc933fb78ea3ce622a821df0bafa410dc95f2a3c0a36cc4b97dd314994a4b13",
+      "context_rule_ids": [
+        2
+      ]
+    },
+    "wrong_function": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "7e59bfec2c58395ccbdf9736b0a650386b1762519f022215e9cdd018b0bd1e39",
+      "ledger": 3504667,
+      "final_status": "FAILED",
+      "auth_digest_hex": "fea875574443362f2841095295769a6d13e28be1f1fdd24823e70c15ed98071c",
+      "context_rule_ids": [
+        2
+      ]
+    }
+  },
+  "expected_policy_surface": {
+    "function": "transfer only",
+    "sender": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+    "recipient": "GCJNG3JWPRVPAIT4WNRYFWOPSV66HESAFNGCZQTCGYPGA6HDXVLQC235",
+    "max_amount_stroops": "1000000",
+    "owner_passkey_required_for_any_unmatched_action": true
+  },
+  "readback": {
+    "rule_count": 4,
+    "snapshot_hash": "aa425f2369ccbb1f357498a7a341f614b1ede6b2a2dc160f47a094ba76d963f5"
+  }
+}

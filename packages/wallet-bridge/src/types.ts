@@ -61,6 +61,11 @@ export interface WalletInstallAction {
       spending_limit_stroops: string;
       period_ledgers: number;
     };
+    custom?: Array<{
+      address: string;
+      classification: string;
+      params_xdr_b64: string;
+    }>;
   };
 }
 
