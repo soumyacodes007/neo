@@ -1,0 +1,117 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.passkey-install-session-rule",
+  "created_at": "2026-07-08T19:07:51.866Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "plan_hash": "8f11b065c6d3df8897de45caa1431737b16c3b7ded216d413371cc768fd92b3c",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "wallet": {
+    "sdk": "smart-account-kit",
+    "sdk_version": "0.2.10",
+    "signer_kind": "webauthn",
+    "public_signer_ref": "2qMSQEyUL3-nVCVp_KBmZg",
+    "public_key_hint": "04a81b100972bb28acd11e8fdb187d5a0e1b90060b4f2c4e53ea40c64814ca5ac598e876a53d314b38a14bb8f6e5db8e4bd7570b2e7a531876889c85b431aada8c"
+  },
+  "session_signer": {
+    "type": "external",
+    "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+    "public_key_hex": "00d4b2a6d3abd2223d6932f71ab0b8fcc0eb0396df65734cb15b07e87109615e",
+    "secret_storage": ".tmp\\phase8-session-key.json",
+    "signer_id": 1
+  },
+  "install_request": {
+    "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+    "target_contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "rule_name": "ozpb-1",
+    "valid_until_ledger": 3521660,
+    "session_signer_public_key_hex": "00d4b2a6d3abd2223d6932f71ab0b8fcc0eb0396df65734cb15b07e87109615e",
+    "policies": {
+      "simple_threshold": {
+        "address": "CB2WQXF2XXDGUV2CTVQ23RLN3ESI3IY5KKX3KVXWBNRTTWDHZM76NVKJ",
+        "threshold": 1
+      }
+    }
+  },
+  "transaction": {
+    "hash": "5c8bd05ddd4f19ae365a2f372f2a457baf74a61de1abce566a4801357fe04321",
+    "ledger": 3504384,
+    "source": "browser_submitted"
+  },
+  "readback": {
+    "before_rule_count": 1,
+    "after_rule_count": 2,
+    "installed_rule": {
+      "id": 1,
+      "name": "ozpb-1",
+      "context_type": {
+        "kind": "call_contract",
+        "address": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+      },
+      "valid_until_ledger": 3521660,
+      "signers": [
+        {
+          "signer": {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "ANSyptOr0iI9aTL3GrC4/MDrA5bfZXNMsVsH6HEJYV4=",
+            "verifier_kind": "unknown"
+          },
+          "signer_id": 1,
+          "canonical_hash": "91d7f8c33fddc8981b29a8b853562df97f521e284327618cc726db02de4ce2ef"
+        }
+      ],
+      "policies": [
+        {
+          "address": "CB2WQXF2XXDGUV2CTVQ23RLN3ESI3IY5KKX3KVXWBNRTTWDHZM76NVKJ",
+          "policy_id": 0,
+          "classification": "unknown",
+          "wasm_hash": "967dc8b1b2840a77e216243c60a7766c0fe737e6d6db47d7b210f3bf589f681a"
+        }
+      ],
+      "privilege": "scoped",
+      "status": "active"
+    },
+    "snapshot_hash": "2eb73b989aa8695d7267ed226dcc86812d8f7c6c505602eab4bfbe29060cb0ed"
+  },
+  "trace": {
+    "tx_hash": "5c8bd05ddd4f19ae365a2f372f2a457baf74a61de1abce566a4801357fe04321",
+    "ledger": 3504384,
+    "successful": true,
+    "auth_entries": 1,
+    "token_deltas": []
+  },
+  "evidence": {
+    "status": "ok",
+    "context_count": 1,
+    "evidence_hash": "82282f6586e7b9458c409f1075f4afd1dc58a052ff0dd8f3b8d940efd074600e"
+  },
+  "coverage_router_smoke": {
+    "matching": {
+      "covered": true,
+      "pattern": {
+        "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "fn": "transfer",
+        "max_amount_i128": "10000000",
+        "valid_until_ledger": 3521660
+      },
+      "reason": "matched_policy"
+    },
+    "amount_plus_one": {
+      "covered": false,
+      "reason": "amount_exceeds_policy"
+    },
+    "wrong_function": {
+      "covered": false,
+      "reason": "no_matching_policy"
+    }
+  },
+  "known_contracts": {
+    "account_wasm_hash": "8537b8166c0078440a5324c12f6db48d6340d157c306a54c5ea81405abcc2611",
+    "webauthn_verifier_address": "CCMR63YE5T7MPWREF3PC5XNTTGXFSB4GYUGUIT5POHP2UGCS65TBIUUU",
+    "ed25519_verifier_address": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+    "threshold_policy_address": "CB2WQXF2XXDGUV2CTVQ23RLN3ESI3IY5KKX3KVXWBNRTTWDHZM76NVKJ",
+    "spending_limit_policy_address": "CBBZ2XP4LBDEO2EELTZKJSPQZDREFKCULL6CKIUQO53S42RZABOYQUK3",
+    "native_token_contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+  }
+}

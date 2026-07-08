@@ -22,6 +22,7 @@
     "testnet:phase5-auth-tx": "node scripts/phase5-auth-tx-e2e.mjs",
     "testnet:phase5-token-transfer": "node scripts/phase5-token-transfer-e2e.mjs",
     "testnet:phase8-wallet-demo": "node scripts/phase8-wallet-demo.mjs",
+    "testnet:phase8-install-session-rule": "node scripts/phase8-install-session-rule.mjs",
     "docker:sandbox-smoke": "wsl bash -lc 'bash scripts/docker-sandbox-smoke.sh'",
     "rust:test": "wsl bash -lc 'cargo test --manifest-path rust/Cargo.toml'",
     "rust:clippy": "wsl bash -lc 'cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings'",

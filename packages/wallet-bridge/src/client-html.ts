@@ -39,6 +39,7 @@ export function renderCompanionHtml(): string {
           <button id="createWallet" hidden>Create wallet</button>
           <button id="connectWallet" hidden>Connect wallet</button>
           <button id="runOneOff" hidden>Approve and run action</button>
+          <button id="signInstall" hidden>Approve and sign install plan</button>
           <button id="mockApprove">Mock approve</button>
           <button class="secondary" id="reject">Reject</button>
         </div>

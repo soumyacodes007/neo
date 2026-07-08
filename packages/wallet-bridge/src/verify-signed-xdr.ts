@@ -16,6 +16,18 @@ export function verifySigningResult(payload: SigningPayload, result: SigningResu
     return { ok: false, error: "E_WALLET_BRIDGE_PLAN_HASH_MISMATCH" };
   }
 
+  if (payload.expected_signer.account !== undefined && result.account !== payload.expected_signer.account) {
+    return { ok: false, error: "E_WALLET_BRIDGE_ACCOUNT_MISMATCH" };
+  }
+
+  if (result.wallet.signer_kind !== payload.expected_signer.signer_kind) {
+    return { ok: false, error: "E_WALLET_BRIDGE_SIGNER_KIND_MISMATCH" };
+  }
+
+  if (result.wallet.sdk === "smart-account-kit" && result.wallet.public_signer_ref === undefined) {
+    return { ok: false, error: "E_WALLET_BRIDGE_MISSING_PUBLIC_SIGNER" };
+  }
+
   if (result.signed_steps.length !== payload.steps.length) {
     return { ok: false, error: "E_WALLET_BRIDGE_STEP_COVERAGE" };
   }
@@ -60,6 +72,7 @@ export function parseSigningResult(value: unknown): SigningResult | undefined {
   const sdkVersion = wallet["sdk_version"];
   const signerKind = wallet["signer_kind"];
   const publicSignerRef = wallet["public_signer_ref"];
+  const publicKeyHint = wallet["public_key_hint"];
   if (sdk !== "smart-account-kit" && sdk !== "mock") return undefined;
   if (typeof sdkVersion !== "string") return undefined;
   if (
@@ -70,6 +83,7 @@ export function parseSigningResult(value: unknown): SigningResult | undefined {
     return undefined;
   }
   if (!Array.isArray(signedStepsValue)) return undefined;
+  if (publicKeyHint !== undefined && typeof publicKeyHint !== "string") return undefined;
   const signedSteps = [];
   for (const step of signedStepsValue) {
     if (!isRecord(step)) return undefined;
@@ -98,6 +112,7 @@ export function parseSigningResult(value: unknown): SigningResult | undefined {
       sdk_version: sdkVersion,
       signer_kind: signerKind,
       ...(typeof publicSignerRef === "string" ? { public_signer_ref: publicSignerRef } : {}),
+      ...(typeof publicKeyHint === "string" ? { public_key_hint: publicKeyHint } : {}),
     },
     signed_steps: signedSteps,
     ...(typeof planHash === "string" ? { plan_hash: planHash } : {}),

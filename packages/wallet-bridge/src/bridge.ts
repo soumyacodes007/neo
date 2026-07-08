@@ -15,18 +15,18 @@ const COMPANION_ASSET_CANDIDATES = [
 ];
 
 export interface WalletBridgeOptions {
-  host?: "127.0.0.1";
+  host?: "127.0.0.1" | "localhost";
   store?: SigningRequestStore;
 }
 
 export class WalletBridge {
   private server: Server | undefined;
   private origin: string | undefined;
-  private readonly host: "127.0.0.1";
+  private readonly host: "127.0.0.1" | "localhost";
   readonly store: SigningRequestStore;
 
   constructor(options: WalletBridgeOptions = {}) {
-    this.host = options.host ?? "127.0.0.1";
+    this.host = options.host ?? "localhost";
     this.store = options.store ?? new SigningRequestStore();
   }
 

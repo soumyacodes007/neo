@@ -1,6 +1,6 @@
 import type { SigningPayload, SigningResult } from "./types.js";
 
-export function samplePayload(): SigningPayload {
+export function samplePayload(overrides: Partial<SigningPayload> = {}): SigningPayload {
   return {
     human_summary_markdown: "Allow transfer up to 400 XLM to James.",
     risk_summary_markdown: "Session key is scoped and expires.",
@@ -16,6 +16,7 @@ export function samplePayload(): SigningPayload {
         auth_requirements: [],
       },
     ],
+    ...overrides,
   };
 }
 
@@ -23,6 +24,7 @@ export function sampleResult(sid: string, planHash?: string): SigningResult {
   return {
     sid,
     ...(planHash !== undefined ? { plan_hash: planHash } : {}),
+    account: "C_ACCOUNT",
     wallet: { sdk: "mock", sdk_version: "0.0.0", signer_kind: "webauthn" },
     signed_steps: [{ order: 1, step_hash: "step-1", signed_xdr: "mock-signed:AAAA" }],
   };

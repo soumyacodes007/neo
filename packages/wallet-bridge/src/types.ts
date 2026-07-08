@@ -27,7 +27,10 @@ export interface WalletKitConfig {
   spending_limit_policy_address?: string;
   weighted_threshold_policy_address?: string;
   relayer_url?: string;
+  rp_id?: string;
   rp_name?: string;
+  passkey_user_name?: string;
+  passkey_nickname?: string;
 }
 
 export interface WalletDemoAction {
@@ -37,12 +40,37 @@ export interface WalletDemoAction {
   amount_xlm: number;
 }
 
+export interface WalletInstallAction {
+  kind: "session_rule";
+  account: string;
+  owner_credential_id?: string;
+  target_contract: string;
+  rule_name: string;
+  valid_until_ledger: number;
+  session_signer: {
+    verifier: string;
+    public_key_hex: string;
+  };
+  policies?: {
+    simple_threshold?: {
+      address: string;
+      threshold: number;
+    };
+    spending_limit?: {
+      address: string;
+      spending_limit_stroops: string;
+      period_ledgers: number;
+    };
+  };
+}
+
 export interface SigningPayload {
   human_summary_markdown: string;
   risk_summary_markdown: string;
   policy_diff_markdown: string;
   wallet_kit?: WalletKitConfig;
   demo_action?: WalletDemoAction;
+  install_action?: WalletInstallAction;
   expected_signer: {
     account?: string;
     signer_kind: "webauthn" | "ed25519" | "delegated";
@@ -84,6 +112,7 @@ export interface SigningResult {
     sdk_version: string;
     signer_kind: "webauthn" | "ed25519" | "delegated";
     public_signer_ref?: string;
+    public_key_hint?: string;
   };
   signed_steps: {
     order: number;

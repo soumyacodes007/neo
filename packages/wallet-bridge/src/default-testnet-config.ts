@@ -10,5 +10,6 @@ export const SMART_ACCOUNT_KIT_TESTNET_DEFAULTS: WalletKitConfig = {
   threshold_policy_address: "CB2WQXF2XXDGUV2CTVQ23RLN3ESI3IY5KKX3KVXWBNRTTWDHZM76NVKJ",
   spending_limit_policy_address: "CBBZ2XP4LBDEO2EELTZKJSPQZDREFKCULL6CKIUQO53S42RZABOYQUK3",
   weighted_threshold_policy_address: "CCF65VXVORNOZBRR3EG3GZYSFS3ALDG44CDYN5T5KRWKYX6RXLKLXER4",
+  rp_id: "localhost",
   rp_name: "OZ Policy Builder",
 };

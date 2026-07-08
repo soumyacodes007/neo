@@ -102,9 +102,15 @@ importers:
       '@ozpb/stellar':
         specifier: workspace:*
         version: link:../stellar
+      '@simplewebauthn/browser':
+        specifier: ^13.2.2
+        version: 13.3.0
       '@stellar/stellar-sdk':
         specifier: ^16.0.1
         version: 16.0.1
+      base64url:
+        specifier: ^3.0.1
+        version: 3.0.1
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -2163,8 +2169,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@simplewebauthn/browser@13.3.0':
-    optional: true
+  '@simplewebauthn/browser@13.3.0': {}
 
   '@stellar/js-xdr@4.0.0': {}
 
@@ -2430,8 +2435,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  base64url@3.0.1:
-    optional: true
+  base64url@3.0.1: {}
 
   bignumber.js@11.1.5: {}
 

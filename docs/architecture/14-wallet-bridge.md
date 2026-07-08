@@ -26,7 +26,7 @@ Primary references:
 
 We will use a top-level browser companion window for owner approval and passkey signing.
 
-The MCP server will run a local loopback HTTP bridge bound to `127.0.0.1` on an ephemeral port. When the user must create a smart account or sign an install plan, the MCP returns an approval URL. Claude Desktop shows the URL, and the skill can ask the host or OS to open it. The user approves in the normal browser window. The browser signs with smart-account-kit and posts signed XDR back to the loopback bridge.
+The MCP server will run a local loopback HTTP bridge bound to `localhost` on an ephemeral port. Use `localhost` rather than `127.0.0.1` for passkey flows because WebAuthn relying-party validation accepts loopback localhost as a secure local origin, while IP-address RP IDs can be rejected by browser/WebAuthn libraries. When the user must create a smart account or sign an install plan, the MCP returns an approval URL. Claude Desktop shows the URL, and the skill can ask the host or OS to open it. The user approves in the normal browser window. The browser signs with smart-account-kit and posts signed XDR back to the loopback bridge.
 
 The MCP never receives owner private keys, passkey secrets, wallet passwords, or raw WebAuthn credentials. It receives only account metadata, public signer data, and signed XDR.
 

@@ -262,7 +262,25 @@ async function buildPipeline({ rpc, traces, account, signerRef }) {
       traces,
     });
     const firstContext = evidence.contexts[0];
-    if (!firstContext) throw new Error("no auth contexts extracted");
+    if (!firstContext) {
+      return {
+        status: "skipped",
+        reason: mode === "create_wallet"
+          ? "wallet deployment succeeded; deploy transactions do not contain smart-account authorization contexts"
+          : "no account authorization contexts found",
+        latest_ledger: latest.sequence,
+        snapshot: {
+          hash: snapshot.snapshot_hash,
+          account_wasm_hash: snapshot.account_wasm_hash,
+          rule_count: snapshot.rule_count,
+        },
+        evidence: {
+          hash: evidence.evidence_hash,
+          context_count: 0,
+          contexts: [],
+        },
+      };
+    }
     const credentialBytes = Buffer.from(signerRef ?? "browser-passkey", "utf8");
     const intent = PolicyIntent.parse({
       schema_version: "1",
