@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "created_at": "2026-07-09T10:16:54.694Z",
+  "mode": "one_off_blend",
+  "approval": {
+    "sid": "a0c43006-9d93-4445-a85d-ddbb8c445758",
+    "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+    "wallet": {
+      "sdk": "smart-account-kit",
+      "sdk_version": "0.2.10",
+      "signer_kind": "webauthn",
+      "public_signer_ref": "2qMSQEyUL3-nVCVp_KBmZg"
+    }
+  },
+  "wallet_kit": {
+    "rpc_url": "https://soroban-testnet.stellar.org",
+    "account_wasm_hash": "8537b8166c0078440a5324c12f6db48d6340d157c306a54c5ea81405abcc2611",
+    "webauthn_verifier_address": "CCMR63YE5T7MPWREF3PC5XNTTGXFSB4GYUGUIT5POHP2UGCS65TBIUUU",
+    "native_token_contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+  },
+  "submitted": [
+    {
+      "order": 1,
+      "step_hash": "one_off_blend_submit",
+      "tx_hash": "32a21362d57d66378f8a238ee37748cc819c4a752db450d84c9cadf6c9fe42ad",
+      "ledger": 3515274,
+      "source": "browser_submitted"
+    }
+  ],
+  "traces": [
+    {
+      "tx_hash": "32a21362d57d66378f8a238ee37748cc819c4a752db450d84c9cadf6c9fe42ad",
+      "ledger": 3515274,
+      "successful": true,
+      "source_account": "GAAH4OT36RRCCAGKARGPN2HLHT2NOBVFHO4GUHA6CF7UKQ4MMV24WQ4N",
+      "operations": [
+        "invokeHostFunction"
+      ],
+      "auth_entries": 1,
+      "token_deltas": [
+        {
+          "token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "from": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+          "to": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+          "amount": "100000",
+          "decimals": 0,
+          "source": "event"
+        }
+      ]
+    }
+  ],
+  "pipeline": {
+    "status": "ok",
+    "latest_ledger": 3515274,
+    "snapshot": {
+      "hash": "2b10e25039662b412c34f485777b2cb761b42953dd63ed4df98330bb80446d17",
+      "account_wasm_hash": "8537b8166c0078440a5324c12f6db48d6340d157c306a54c5ea81405abcc2611",
+      "rule_count": 6
+    },
+    "evidence": {
+      "hash": "464184a8fd6014fcf48ef15cde09d1d9f6411c66f2cf4cd29cd11793d0224c45",
+      "context_count": 2,
+      "contexts": [
+        {
+          "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+          "fn_name": "submit",
+          "arity": 4,
+          "depth": "root",
+          "observed_args": 4
+        },
+        {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "arity": 3,
+          "depth": "sub",
+          "observed_args": 3
+        }
+      ]
+    },
+    "ruleset": {
+      "hash": "fd63164da52506a9babe2d693b34de033ad9547922d8744dc279d613395597a6",
+      "rule_count": 2,
+      "unsatisfied_count": 0
+    },
+    "bypass": {
+      "hash": "6966170d94a72b51e09962bbc31a366908925b2280ed82b15a3440be291cf220",
+      "bypass_count": 0,
+      "unknown_count": 0,
+      "exhaustive": true
+    }
+  }
+}

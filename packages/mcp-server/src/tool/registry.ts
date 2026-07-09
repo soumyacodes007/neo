@@ -1,5 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { WalletBridge } from "@ozpb/wallet-bridge";
+import { registerAssertActionTestnetFixturesTool } from "./assert-action-testnet-fixtures.js";
 import { registerAssertTestnetDemoFixtureTool } from "./assert-testnet-demo-fixture.js";
 import { registerAuthorPolicyDraftTool } from "./author-policy-draft.js";
 import { registerAwaitWalletResultTool } from "./await-wallet-result.js";
@@ -39,6 +40,7 @@ const splitToolModules: RegisterToolModule[] = [
   registerRunSimulationTool,
   registerDetectBypassTool,
   registerPrepareInstallPlanTool,
+  registerAssertActionTestnetFixturesTool,
   registerRecordEvidenceTool,
   registerAuthorPolicyDraftTool,
   registerMaterializeGeneratedPolicyTool,

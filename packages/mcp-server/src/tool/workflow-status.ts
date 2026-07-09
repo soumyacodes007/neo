@@ -6,7 +6,18 @@ import { withToolBoundary } from "../tool-boundary.js";
 import type { McpToolContext } from "./types.js";
 
 const ArtifactSchema = z.object({
-  kind: z.enum(["recording", "ruleset", "simulation_report", "bypass_report", "risk_report", "install_plan", "generated_policy", "testnet_fixture"]),
+  kind: z.enum([
+    "action_plan",
+    "recording",
+    "ruleset",
+    "simulation_report",
+    "bypass_report",
+    "risk_report",
+    "install_plan",
+    "generated_policy",
+    "testnet_fixture",
+    "action_testnet_fixture",
+  ]),
   path: z.string().optional(),
   hash: z.string().optional(),
   status: z.enum(["missing", "present", "stale", "failed", "passed", "review_required"]).default("present"),
@@ -41,6 +52,8 @@ export function registerWorkflowStatusTool(server: McpServer, _context: McpToolC
         hard_rules: [
           "Do not submit or install without owner approval.",
           "Do not treat fake simulation as security verification.",
+          "Do not claim XLM/Blend transaction readiness without ozpb_assert_action_testnet_fixtures or a fresh tx hash.",
+          "Do not create browser approval for an unsupported action builder; route to real external tx hash recording.",
           "Generated policy code must be reviewed, compiled, and simulated before install.",
           "Changed actions must route to owner approval when coverage fails.",
         ],
@@ -52,6 +65,8 @@ export function registerWorkflowStatusTool(server: McpServer, _context: McpToolC
 function nextStep(artifacts: z.infer<typeof ArtifactSchema>[]): string {
   const has = (kind: z.infer<typeof ArtifactSchema>["kind"], status?: z.infer<typeof ArtifactSchema>["status"]) =>
     artifacts.some((a) => a.kind === kind && (status === undefined || a.status === status));
+  if (!has("action_plan")) return "ozpb_prepare_action";
+  if (!has("action_testnet_fixture", "passed")) return "ozpb_assert_action_testnet_fixtures for current XLM/Blend proof, or execute a fresh real testnet transaction";
   if (!has("recording")) return "ozpb_record_evidence";
   if (!has("ruleset")) return "ozpb_synthesize_ruleset or ozpb_author_policy_draft";
   if (has("generated_policy", "review_required")) return "review generated files, then ozpb_compile_generated_policy";

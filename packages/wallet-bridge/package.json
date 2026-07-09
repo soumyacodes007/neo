@@ -19,6 +19,7 @@
   "dependencies": {
     "@ozpb/core": "workspace:*",
     "@ozpb/stellar": "workspace:*",
+    "@blend-capital/blend-sdk": "3.3.0",
     "@simplewebauthn/browser": "^13.2.2",
     "@stellar/stellar-sdk": "^16.0.1",
     "base64url": "^3.0.1",

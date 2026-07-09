@@ -6,6 +6,7 @@ import {
   IndexedDBStorage,
   SmartAccountKit,
 } from "smart-account-kit";
+import { PoolContractV2, RequestType } from "@blend-capital/blend-sdk";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { Address, Contract, Operation, Transaction, TransactionBuilder, hash, rpc, xdr } from "@stellar/stellar-sdk";
 import base64url from "base64url";
@@ -36,12 +37,20 @@ interface WalletKitConfig {
   passkey_nickname?: string;
 }
 
-interface WalletDemoAction {
-  kind: "xlm_transfer";
-  token_contract: string;
-  recipient: string;
-  amount_xlm: number;
-}
+type WalletDemoAction =
+  | {
+    kind: "xlm_transfer";
+    token_contract: string;
+    recipient: string;
+    amount_xlm: number;
+  }
+  | {
+    kind: "blend_submit";
+    pool_contract: string;
+    reserve: string;
+    request_type: "SupplyCollateral";
+    amount_i128: string;
+  };
 
 interface WalletInstallAction {
   kind: "session_rule";
@@ -89,6 +98,7 @@ interface BrowserApprovalRequest {
       account?: string;
       signer_kind: "webauthn" | "ed25519" | "delegated";
       verifier?: string;
+      credential_id?: string;
       public_key_hint?: string;
     };
     steps: BrowserSigningStep[];
@@ -213,10 +223,29 @@ async function runOneOff(): Promise<void> {
     setStatus("Signing and submitting one-off action. Complete the passkey prompt in this browser.");
     const kit = loadKit();
     const action = request.payload.demo_action;
-    if (!action || action.kind !== "xlm_transfer") throw new Error("Unsupported demo action");
-    const connected = await kit.connectWallet({ prompt: true });
+    if (!action) throw new Error("Missing demo action");
+    const connected = await kit.connectWallet(
+      request.payload.expected_signer.account
+        ? {
+          contractId: request.payload.expected_signer.account,
+          ...(request.payload.expected_signer.credential_id ? { credentialId: request.payload.expected_signer.credential_id } : {}),
+          prompt: true,
+        }
+        : { prompt: true },
+    );
     if (!connected) throw new Error("No smart account connected");
-    const tx = await kit.transfer(action.token_contract, action.recipient, action.amount_xlm, { forceMethod: "rpc" });
+    if (request.payload.expected_signer.account && connected.contractId !== request.payload.expected_signer.account) {
+      throw new Error(`Connected account ${connected.contractId} does not match requested account ${request.payload.expected_signer.account}`);
+    }
+    const tx = action.kind === "xlm_transfer"
+      ? await kit.transfer(action.token_contract, action.recipient, action.amount_xlm, { forceMethod: "rpc" })
+      : await submitBlendAction(
+        kit,
+        connected.contractId,
+        action,
+        connected.credentialId,
+        connected.credential?.publicKey ? bytesToHex(connected.credential.publicKey) : request.payload.expected_signer.public_key_hint,
+      );
     if (!tx.success || !tx.hash) throw new Error(tx.error ?? "Transaction failed");
     const step = request.payload.steps[0] ?? { order: 1, step_hash: "one_off_action" };
     await postResult({
@@ -235,6 +264,153 @@ async function runOneOff(): Promise<void> {
   } catch (error: unknown) {
     setStatus(messageOf(error), "error");
   }
+}
+
+async function submitBlendAction(
+  kit: SmartAccountKit,
+  account: string,
+  action: Extract<WalletDemoAction, { kind: "blend_submit" }>,
+  credentialId: string,
+  publicKeyHex: string | undefined,
+): Promise<{ success: boolean; hash?: string; ledger?: number; error?: string }> {
+  const cfg = request.payload.wallet_kit;
+  if (!cfg) throw new Error("Missing smart-account-kit config");
+  if (!publicKeyHex) throw new Error("Connected passkey did not expose a public key hint for known-signer signing");
+  if (action.request_type !== "SupplyCollateral") {
+    throw new Error(`Unsupported Blend request type: ${action.request_type}`);
+  }
+  const amount = parsePositiveBigInt(action.amount_i128, "amount_i128");
+  const rawKit = kit as unknown as {
+    simulateHostFunction?: (hostFunc: xdr.HostFunction) => Promise<{ authEntries: xdr.SorobanAuthorizationEntry[] }>;
+    rpc?: rpc.Server;
+    deployerKeypair?: { publicKey: () => string; sign: (data: Buffer) => Buffer };
+  };
+  if (
+    typeof rawKit.simulateHostFunction !== "function" ||
+    rawKit.rpc === undefined ||
+    rawKit.deployerKeypair === undefined
+  ) {
+    throw new Error("smart-account-kit low-level transaction helpers are unavailable");
+  }
+  const available = await readSacBalance(rawKit.rpc, action.reserve, account);
+  if (available < amount) {
+    throw new Error(
+      `Smart account ${account} has ${available.toString()} raw units of ${action.reserve}, ` +
+      `but the Blend submit needs ${amount.toString()}. Fund the smart account first, then retry.`,
+    );
+  }
+  const op = xdr.Operation.fromXDR(
+    new PoolContractV2(action.pool_contract).submit({
+      from: account,
+      spender: account,
+      to: account,
+      requests: [{ request_type: RequestType.SupplyCollateral, address: action.reserve, amount }],
+    }),
+    "base64",
+  );
+  if (op.body().switch().name !== "invokeHostFunction") {
+    throw new Error("Blend SDK did not produce an invokeHostFunction operation");
+  }
+  const hostFn = op.body().invokeHostFunctionOp().hostFunction();
+  if (hostFn.switch().name !== "hostFunctionTypeInvokeContract") {
+    throw new Error("Blend SDK did not produce a contract invocation");
+  }
+  const { authEntries } = await rawKit.simulateHostFunction(hostFn);
+  const signedEntries = [];
+  for (const authEntry of authEntries) {
+    const contextRuleIds = Array.from({ length: countAuthContexts(authEntry) }, () => 0);
+    signedEntries.push(await signKnownWebAuthnAuthEntry(authEntry, {
+      credentialId,
+      publicKeyHex,
+      webauthnVerifierAddress: cfg.webauthn_verifier_address,
+      rpcUrl: cfg.rpc_url,
+      networkPassphrase: cfg.network_passphrase,
+      contextRuleIds,
+    }));
+  }
+  const source = await rawKit.rpc.getAccount(rawKit.deployerKeypair.publicKey());
+  const signedTx = new TransactionBuilder(source, {
+    fee: "1000000",
+    networkPassphrase: cfg.network_passphrase,
+  })
+    .addOperation(Operation.invokeHostFunction({ func: hostFn, auth: signedEntries }))
+    .setTimeout(300)
+    .build();
+  const resim = await rawKit.rpc.simulateTransaction(signedTx);
+  if ("error" in resim) throw new Error(`Blend submit signed re-simulation failed: ${resim.error}`);
+  const prepared = rpc.assembleTransaction(signedTx, resim).build() as Transaction;
+  prepared.sign(rawKit.deployerKeypair as never);
+  return sendAndPollDetailed(rawKit.rpc, prepared, "Blend submit");
+}
+
+function countAuthContexts(entry: xdr.SorobanAuthorizationEntry): number {
+  return countInvocationContexts(entry.rootInvocation());
+}
+
+function countInvocationContexts(invocation: xdr.SorobanAuthorizedInvocation): number {
+  return 1 + invocation.subInvocations().reduce((total, sub) => total + countInvocationContexts(sub), 0);
+}
+
+async function readSacBalance(rpcServer: rpc.Server, tokenContract: string, holder: string): Promise<bigint> {
+  const key = xdr.ScVal.scvVec([
+    xdr.ScVal.scvSymbol("Balance"),
+    Address.fromString(holder).toScVal(),
+  ]);
+  try {
+    const data = await rpcServer.getContractData(tokenContract, key);
+    return extractSacBalanceAmount(data.val.contractData().val());
+  } catch (error: unknown) {
+    if (String(messageOf(error)).includes("Contract data not found")) return 0n;
+    throw error;
+  }
+}
+
+function extractSacBalanceAmount(value: xdr.ScVal): bigint {
+  if (value.switch().name === "scvI128") return i128PartsToBigInt(value.i128());
+  if (value.switch().name !== "scvMap") return 0n;
+  for (const entry of value.map() ?? []) {
+    const key = entry.key();
+    if (key.switch().name === "scvSymbol" && key.sym().toString() === "amount") {
+      const amount = entry.val();
+      if (amount.switch().name === "scvI128") return i128PartsToBigInt(amount.i128());
+    }
+  }
+  return 0n;
+}
+
+function i128PartsToBigInt(parts: xdr.Int128Parts): bigint {
+  return (BigInt(parts.hi().toString()) << 64n) | BigInt(parts.lo().toString());
+}
+
+async function sendAndPollDetailed(
+  rpcServer: rpc.Server,
+  transaction: Transaction,
+  label: string,
+): Promise<{ success: boolean; hash?: string; ledger?: number; error?: string }> {
+  const send = await rpcServer.sendTransaction(transaction);
+  if (send.status !== "PENDING" && send.status !== "DUPLICATE") {
+    return {
+      success: false,
+      hash: "hash" in send ? send.hash : undefined,
+      error: `${label} submission failed: ${JSON.stringify(send)}`,
+    };
+  }
+  const hashValue = send.hash;
+  for (let i = 0; i < 40; i++) {
+    const tx = await rpcServer.getTransaction(hashValue);
+    if (tx.status === "SUCCESS") {
+      return { success: true, hash: hashValue, ledger: tx.ledger };
+    }
+    if (tx.status === "FAILED" || tx.status === "ERROR") {
+      return {
+        success: false,
+        hash: hashValue,
+        error: `${label} failed on-chain with tx ${hashValue}: ${JSON.stringify(tx)}`,
+      };
+    }
+    await sleep(1500);
+  }
+  return { success: false, hash: hashValue, error: `${label} timed out waiting for ${hashValue}` };
 }
 
 async function signInstallPlan(): Promise<void> {
@@ -461,6 +637,7 @@ async function signKnownWebAuthnAuthEntry(
     rpcUrl: string;
     networkPassphrase: string;
     expiration?: number;
+    contextRuleIds?: readonly number[];
   },
 ): Promise<xdr.SorobanAuthorizationEntry> {
   const normalizedEntry = xdr.SorobanAuthorizationEntry.fromXDR(entry.toXDR());
@@ -474,7 +651,7 @@ async function signKnownWebAuthnAuthEntry(
     invocation: normalizedEntry.rootInvocation(),
   }));
   const payload = hash(preimage.toXDR());
-  const contextRuleIds = [0];
+  const contextRuleIds = input.contextRuleIds ?? [0];
   const authDigest = hash(Buffer.concat([
     Buffer.from(payload),
     contextRuleIdsToXdr(contextRuleIds),
@@ -677,6 +854,17 @@ function bytesToHex(bytes: Uint8Array): string {
 function hexToBytes(hex: string): Uint8Array {
   if (!/^[0-9a-f]+$/iu.test(hex) || hex.length % 2 !== 0) throw new Error("Invalid hex bytes");
   return Uint8Array.from(hex.match(/.{2}/gu)?.map((byte) => Number.parseInt(byte, 16)) ?? []);
+}
+
+function parsePositiveBigInt(value: string, label: string): bigint {
+  if (!/^\d+$/u.test(value)) {
+    throw new Error(`${label} must be a non-negative integer string`);
+  }
+  const parsed = BigInt(value);
+  if (parsed <= 0n) {
+    throw new Error(`${label} must be greater than zero`);
+  }
+  return parsed;
 }
 
 async function postResult(result: unknown): Promise<void> {

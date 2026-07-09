@@ -1,8 +1,11 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { recordTransactionEvidence } from "@ozpb/plans";
+import { SMART_ACCOUNT_KIT_TESTNET_DEFAULTS } from "@ozpb/wallet-bridge";
 import { withToolBoundary } from "../tool-boundary.js";
 import { NetworkSchema, rpcClient, type McpToolContext } from "./types.js";
+
+const testnetDefaults = SMART_ACCOUNT_KIT_TESTNET_DEFAULTS;
 
 const SourceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("tx_hash"), tx_hash: z.string().length(64) }),
@@ -20,7 +23,7 @@ export function registerRecordEvidenceTool(server: McpServer, _context: McpToolC
         account: z.string().min(1),
         network: NetworkSchema.default("testnet"),
         polarity: z.enum(["positive", "negative"]).default("positive"),
-        rpc_url: z.string().url().optional(),
+        rpc_url: z.string().url().default(testnetDefaults.rpc_url),
         source: SourceSchema,
       },
     },
@@ -33,7 +36,7 @@ export function registerRecordEvidenceTool(server: McpServer, _context: McpToolC
       {
         network: input.network,
         now: () => new Date().toISOString(),
-        ...(input.rpc_url !== undefined ? { rpc: rpcClient(input.rpc_url) } : {}),
+        rpc: rpcClient(input.rpc_url),
       },
     )),
   );

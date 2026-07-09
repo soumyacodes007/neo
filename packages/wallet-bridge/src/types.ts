@@ -33,12 +33,20 @@ export interface WalletKitConfig {
   passkey_nickname?: string;
 }
 
-export interface WalletDemoAction {
-  kind: "xlm_transfer";
-  token_contract: string;
-  recipient: string;
-  amount_xlm: number;
-}
+export type WalletDemoAction =
+  | {
+    kind: "xlm_transfer";
+    token_contract: string;
+    recipient: string;
+    amount_xlm: number;
+  }
+  | {
+    kind: "blend_submit";
+    pool_contract: string;
+    reserve: string;
+    request_type: "SupplyCollateral";
+    amount_i128: string;
+  };
 
 export interface WalletInstallAction {
   kind: "session_rule";
@@ -80,6 +88,7 @@ export interface SigningPayload {
     account?: string;
     signer_kind: "webauthn" | "ed25519" | "delegated";
     verifier?: string;
+    credential_id?: string;
     public_key_hint?: string;
   };
   steps: SigningStep[];

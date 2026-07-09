@@ -11,6 +11,7 @@ export const existingToolManifest = [
   "ozpb_compile_generated_policy",
   "ozpb_verify_policy",
   "ozpb_assert_testnet_demo_fixture",
+  "ozpb_assert_action_testnet_fixtures",
   "ozpb_workflow_status",
   "ozpb_install_policy",
   "ozpb_execute_with_session",

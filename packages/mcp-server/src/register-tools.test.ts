@@ -37,6 +37,7 @@ describe("registerOzpbTools", () => {
       "ozpb_materialize_generated_policy",
       "ozpb_compile_generated_policy",
       "ozpb_assert_testnet_demo_fixture",
+      "ozpb_assert_action_testnet_fixtures",
       "ozpb_workflow_status",
     ]));
   });

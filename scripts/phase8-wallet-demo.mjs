@@ -27,11 +27,19 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const mode = process.env.PHASE8_DEMO_MODE ?? "create_wallet";
-const outPath = path.join(root, "fixtures", "testnet", "phase8-wallet-demo-result.json");
+const outPath = path.resolve(
+  root,
+  process.env.PHASE8_DEMO_OUT ?? path.join("fixtures", "testnet", "phase8-wallet-demo-result.json"),
+);
+const walletFixturePath = path.resolve(
+  root,
+  process.env.PHASE8_WALLET_FIXTURE ?? path.join("fixtures", "testnet", "phase8-wallet-demo-result.json"),
+);
 const walletKit = {
   ...SMART_ACCOUNT_KIT_TESTNET_DEFAULTS,
   rpc_url: process.env.STELLAR_RPC_URL ?? SMART_ACCOUNT_KIT_TESTNET_DEFAULTS.rpc_url,
 };
+const connectedWalletFixture = await readConnectedWalletFixture();
 
 class JsonRpcBackend {
   constructor(url) {
@@ -195,12 +203,54 @@ function buildRequest() {
           recipient,
           amount_xlm: amount,
         },
-        expected_signer: { signer_kind: "webauthn" },
+        expected_signer: {
+          signer_kind: "webauthn",
+          ...(connectedWalletFixture?.account ? { account: connectedWalletFixture.account } : {}),
+          ...(connectedWalletFixture?.credentialId ? { credential_id: connectedWalletFixture.credentialId } : {}),
+          ...(connectedWalletFixture?.publicKeyHint ? { public_key_hint: connectedWalletFixture.publicKeyHint } : {}),
+        },
         steps: [{
           order: 1,
           step_hash: "one_off_xlm_transfer",
           unsigned_xdr: "smart-account-kit:transfer",
           description: "Browser passkey signs and submits the one-off XLM transfer.",
+          network_passphrase: walletKit.network_passphrase,
+          auth_requirements: [],
+        }],
+      },
+    };
+  }
+
+  if (mode === "one_off_blend") {
+    const pool = process.env.BLEND_POOL ?? "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF";
+    const reserve = process.env.BLEND_RESERVE ?? walletKit.native_token_contract;
+    const amount = process.env.BLEND_AMOUNT_I128 ?? "100000";
+    return {
+      kind: "sign_one_off_tx",
+      network: "testnet",
+      payload: {
+        human_summary_markdown: `Submit ${amount} raw units as Blend collateral in pool ${pool}.`,
+        policy_diff_markdown: "No policy is installed by this one-off Blend action. The returned tx hash becomes recorder evidence.",
+        risk_summary_markdown: "This spends real testnet assets from the connected smart account into the selected Blend pool.",
+        wallet_kit: walletKit,
+        demo_action: {
+          kind: "blend_submit",
+          pool_contract: pool,
+          reserve,
+          request_type: "SupplyCollateral",
+          amount_i128: amount,
+        },
+        expected_signer: {
+          signer_kind: "webauthn",
+          ...(connectedWalletFixture?.account ? { account: connectedWalletFixture.account } : {}),
+          ...(connectedWalletFixture?.credentialId ? { credential_id: connectedWalletFixture.credentialId } : {}),
+          ...(connectedWalletFixture?.publicKeyHint ? { public_key_hint: connectedWalletFixture.publicKeyHint } : {}),
+        },
+        steps: [{
+          order: 1,
+          step_hash: "one_off_blend_submit",
+          unsigned_xdr: "blend-sdk:submit",
+          description: "Browser passkey signs and submits the one-off Blend submit transaction.",
           network_passphrase: walletKit.network_passphrase,
           auth_requirements: [],
         }],
@@ -228,6 +278,20 @@ function buildRequest() {
       }],
     },
   };
+}
+
+async function readConnectedWalletFixture() {
+  if (mode === "create_wallet") return undefined;
+  try {
+    const fixture = JSON.parse(await fs.readFile(walletFixturePath, "utf8"));
+    return {
+      account: fixture.approval?.account,
+      credentialId: fixture.approval?.wallet?.public_signer_ref,
+      publicKeyHint: fixture.approval?.wallet?.public_key_hint,
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 function openBrowser(url) {
