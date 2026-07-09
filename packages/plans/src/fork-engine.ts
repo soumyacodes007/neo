@@ -61,6 +61,14 @@ export interface ForkHarnessEngineOptions {
   account?: string;
   rule: ForkHarnessRule;
   policies: ForkPolicy[];
+  docker?: {
+    image?: string;
+    cpus?: string;
+    memory?: string;
+    network?: "none" | "host";
+    cargoRegistry?: string;
+    cargoGit?: string;
+  };
   command?: string;
   cwd?: string;
   runProcess?: ProcessRunner;
@@ -101,11 +109,13 @@ export class ForkHarnessEngine implements SimulationEngine {
     try {
       const snapshotPath = await this.#snapshotPath(dir);
       await writeFile(inputPath, JSON.stringify(this.#input(cases, snapshotPath), null, 2));
-      const result = await this.#opts.runProcess(
-        this.#opts.command,
-        ["run", "--quiet", "--manifest-path", this.#opts.harnessManifestPath, "--", inputPath],
-        { cwd: this.#opts.cwd },
-      );
+      const result = this.#opts.docker === undefined
+        ? await this.#opts.runProcess(
+          this.#opts.command,
+          ["run", "--quiet", "--manifest-path", this.#opts.harnessManifestPath, "--", inputPath],
+          { cwd: this.#opts.cwd },
+        )
+        : await this.#opts.runProcess("docker", dockerArgs(this.#opts.cwd, dir, this.#opts.docker), { cwd: this.#opts.cwd });
       if (result.code !== 0) {
         return cases.map((c) => ({ case_id: c.id, outcome: "error", detail: result.stderr || result.stdout || `harness exited ${result.code}` }));
       }
@@ -149,6 +159,32 @@ export class ForkHarnessEngine implements SimulationEngine {
       })),
     };
   }
+}
+
+function dockerArgs(_cwd: string, inputDir: string, opts: NonNullable<ForkHarnessEngineOptions["docker"]>): string[] {
+  const image = opts.image ?? "ozpb-sandbox:local";
+  const args = [
+    "run",
+    "--rm",
+    "--network",
+    opts.network ?? "none",
+    "--cpus",
+    opts.cpus ?? "2",
+    "--memory",
+    opts.memory ?? "4g",
+    "-v",
+    `${inputDir}:/ozpb-run:rw`,
+  ];
+  if (opts.cargoRegistry !== undefined) args.push("-v", `${opts.cargoRegistry}:/usr/local/cargo/registry:ro`);
+  if (opts.cargoGit !== undefined) args.push("-v", `${opts.cargoGit}:/usr/local/cargo/git:ro`);
+  args.push(
+    "-w",
+    "/work",
+    image,
+    "rust/harness/target/debug/ozpb-fork-harness",
+    "/ozpb-run/input.json",
+  );
+  return args;
 }
 
 function parseHarnessOutput(stdout: string, cases: TestCase[]): EngineCaseResult[] {

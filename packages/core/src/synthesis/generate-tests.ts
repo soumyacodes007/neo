@@ -19,8 +19,9 @@ import type { Provenance } from "../schemas/common.js";
 
 const DEFAULT_PROV: Provenance = { kind: "default", rule: "generated-test" };
 // Representative Contract error codes (pinned by fork sim, Vol 08 D3).
-const ERR_FUNC_ALLOWLIST = 3300;
+const ERR_FUNC_ALLOWLIST = 3303;
 const ERR_RULE_EXPIRED = 3013;
+const ERR_CALL_CAP = 3344;
 
 export interface GenerateTestsInput {
   ruleset: CandidateRuleset;
@@ -33,6 +34,8 @@ export interface GenerateTestsDeps {
   encodeI128?: (value: string) => XdrBase64;
   /** Mutate an already encoded ScVal for arg-tamper cases. */
   mutateScVal?: (value: XdrBase64, hint: string) => XdrBase64;
+  /** Error expected when amount caps are enforced by a generated pb_call_cap policy. */
+  amountCapErrorCode?: number;
 }
 
 export function generateTests(input: GenerateTestsInput, deps: GenerateTestsDeps = {}): TestCase[] {
@@ -81,12 +84,14 @@ export function generateTests(input: GenerateTestsInput, deps: GenerateTestsDeps
     }
 
     if (allow !== undefined) {
+      const fn = funcs[0] ?? "x";
+      const args = buildArgsFor(rule.constraints, fn, deps) ?? [];
       // Deny: a function NOT in the allowlist (wrong_function).
       cases.push({
         id: id(),
         kind: "deny",
         origin: { kind: "mutation", operator: "wrong_function", base_case: allow.id },
-        context: { contract: target, fn_name: "__unlisted_fn__", args_scval_b64: [] },
+        context: { contract: target, fn_name: "__unlisted_fn__", args_scval_b64: args },
         signer_set,
         ledger_offset: 0,
         expected: { kind: "panic", contract_error_code: ERR_FUNC_ALLOWLIST },
@@ -97,7 +102,7 @@ export function generateTests(input: GenerateTestsInput, deps: GenerateTestsDeps
         id: id(),
         kind: "deny",
         origin: { kind: "mutation", operator: "wrong_contract", base_case: allow.id },
-        context: { contract: input.ruleset.account, fn_name: funcs[0] ?? "x", args_scval_b64: [] },
+        context: { contract: input.ruleset.account, fn_name: fn, args_scval_b64: args },
         signer_set,
         ledger_offset: 0,
         expected: { kind: "panic", contract_error_code: ERR_FUNC_ALLOWLIST },
@@ -105,12 +110,14 @@ export function generateTests(input: GenerateTestsInput, deps: GenerateTestsDeps
     }
 
     if (expiry !== undefined && funcs.length > 0) {
+      const fn = funcs[0]!;
+      const args = buildArgsFor(rule.constraints, fn, deps) ?? [];
       // Deny: a permitted call past the rule's expiry (expired_window).
       cases.push({
         id: id(),
         kind: "deny",
         origin: { kind: "mutation", operator: "expired_window", base_case: expiry.id },
-        context: { contract: target, fn_name: funcs[0]!, args_scval_b64: [] },
+        context: { contract: target, fn_name: fn, args_scval_b64: args },
         signer_set,
         ledger_offset: (expiry.valid_until_ledger - input.ruleset.rules[0]!.valid_until_ledger) + 1,
         expected: { kind: "panic", contract_error_code: ERR_RULE_EXPIRED },
@@ -149,7 +156,7 @@ export function generateTests(input: GenerateTestsInput, deps: GenerateTestsDeps
         context: { contract: target, fn_name: fn, args_scval_b64: mutated },
         signer_set,
         ledger_offset: 0,
-        expected: { kind: "panic", contract_error_code: 3221 },
+        expected: { kind: "panic", contract_error_code: deps.amountCapErrorCode ?? ERR_CALL_CAP },
       });
       mark(c.id, "deny");
     }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CandidateRuleset, generateTests } from "@ozpb/core";
+import { encodeI128ScValB64, mutateScValB64 } from "@ozpb/stellar";
 import { withToolBoundary } from "../tool-boundary.js";
 import type { McpToolContext } from "./types.js";
 
@@ -17,7 +18,11 @@ export function registerGenerateTestsTool(server: McpServer, _context: McpToolCo
     },
     withToolBoundary("ozpb_generate_tests", (input) => generateTests(
       { ruleset: CandidateRuleset.parse(input.ruleset) },
-      { allowCoverageGaps: input.allow_coverage_gaps },
+      {
+        allowCoverageGaps: input.allow_coverage_gaps,
+        encodeI128: encodeI128ScValB64,
+        mutateScVal: mutateScValB64,
+      },
     )),
   );
 }

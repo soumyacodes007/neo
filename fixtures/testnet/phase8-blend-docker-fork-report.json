@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.blend-docker-fork-policy",
+  "created_at": "2026-07-09T20:34:37.177Z",
+  "source_input": "fixtures/testnet/sd4-compose-blend-submit-input.json",
+  "docker": {
+    "image": "ozpb-sandbox:local",
+    "network": "none"
+  },
+  "verdict": "pass",
+  "cases": [
+    {
+      "case_id": "blend-submit-400-reserve",
+      "outcome": "pass",
+      "detail": null
+    },
+    {
+      "case_id": "blend-submit-401-reserve-denied",
+      "outcome": "pass",
+      "detail": "HostError: Error(Contract, #3344)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M, topics:[error, Error(Contract, #3344)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M, topics:[error, Error(Contract, #3344)], data:[\"failing with contract error\", 3344]\n"
+    },
+    {
+      "case_id": "blend-submit-wrong-token-denied",
+      "outcome": "pass",
+      "detail": "HostError: Error(Contract, #3325)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:[\"failing with contract error\", 3325]\n"
+    },
+    {
+      "case_id": "blend-withdraw-wrong-function-denied",
+      "outcome": "pass",
+      "detail": "HostError: Error(Contract, #3303)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM, topics:[error, Error(Contract, #3303)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM, topics:[error, Error(Contract, #3303)], data:[\"failing with contract error\", 3303]\n"
+    }
+  ]
+}

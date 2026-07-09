@@ -17,8 +17,8 @@
  * paths, mirroring the on-chain path logic the pb policies implement (Vol 07)
  * so TS pre-validation and Rust enforcement agree.
  */
-import { scValToBigInt, xdr, Address } from "@stellar/stellar-sdk";
-import { toXdrBase64, type ScValJson } from "@ozpb/core";
+import { scValToBigInt, xdr, Address, nativeToScVal, StrKey } from "@stellar/stellar-sdk";
+import { toXdrBase64, type ScValJson, type XdrBase64 } from "@ozpb/core";
 
 const SCV = xdr.ScValType;
 
@@ -84,6 +84,113 @@ function decodeValue(scv: xdr.ScVal): unknown {
 /** Lossless `ScValJson` → `xdr.ScVal` via the preserved XDR bytes. */
 export function fromScValJson(json: ScValJson): xdr.ScVal {
   return xdr.ScVal.fromXDR(json.xdr_b64, "base64");
+}
+
+export function encodeI128ScValB64(value: string): XdrBase64 {
+  return toXdrBase64(nativeToScVal(BigInt(value), { type: "i128" }).toXDR("base64"));
+}
+
+export function encodeAddressScValB64(value: string): XdrBase64 {
+  return toXdrBase64(Address.fromString(value).toScVal().toXDR("base64"));
+}
+
+export function encodeU32ScValB64(value: number): XdrBase64 {
+  return toXdrBase64(xdr.ScVal.scvU32(value).toXDR("base64"));
+}
+
+export function encodeBlendSupplyCollateralSubmitArgsB64(input: {
+  account: string;
+  reserve: string;
+  amount: string;
+}): XdrBase64[] {
+  const request = xdr.ScVal.scvMap(sortScMapEntries([
+    new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol("address"), val: Address.fromString(input.reserve).toScVal() }),
+    new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol("amount"), val: nativeToScVal(BigInt(input.amount), { type: "i128" }) }),
+    new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol("request_type"), val: xdr.ScVal.scvU32(2) }),
+  ]));
+  return [
+    Address.fromString(input.account).toScVal(),
+    Address.fromString(input.account).toScVal(),
+    Address.fromString(input.account).toScVal(),
+    xdr.ScVal.scvVec([request]),
+  ].map((arg) => toXdrBase64(arg.toXDR("base64")));
+}
+
+export function mutateScValB64(value: XdrBase64, hint = "mutation"): XdrBase64 {
+  const decoded = xdr.ScVal.fromXDR(value, "base64");
+  return toXdrBase64(mutateScVal(decoded, hint).toXDR("base64"));
+}
+
+function mutateScVal(scv: xdr.ScVal, hint: string): xdr.ScVal {
+  switch (scv.switch()) {
+    case SCV.scvBool():
+      return xdr.ScVal.scvBool(!scv.b());
+    case SCV.scvU32():
+      return xdr.ScVal.scvU32((scv.u32() + 1) >>> 0);
+    case SCV.scvI32():
+      return xdr.ScVal.scvI32(scv.i32() + 1);
+    case SCV.scvU64():
+      return nativeToScVal(scValToBigInt(scv) + 1n, { type: "u64" });
+    case SCV.scvI64():
+      return nativeToScVal(scValToBigInt(scv) + 1n, { type: "i64" });
+    case SCV.scvU128():
+      return nativeToScVal(scValToBigInt(scv) + 1n, { type: "u128" });
+    case SCV.scvI128():
+      return nativeToScVal(scValToBigInt(scv) + 1n, { type: "i128" });
+    case SCV.scvU256():
+      return nativeToScVal(scValToBigInt(scv) + 1n, { type: "u256" });
+    case SCV.scvI256():
+      return nativeToScVal(scValToBigInt(scv) + 1n, { type: "i256" });
+    case SCV.scvBytes(): {
+      const bytes = Buffer.from(scv.bytes());
+      const next = bytes.length === 0 ? Buffer.from([1]) : Buffer.from(bytes);
+      next[0] = (next[0]! ^ 0x01) & 0xff;
+      return xdr.ScVal.scvBytes(next);
+    }
+    case SCV.scvString():
+      return xdr.ScVal.scvString(`${Buffer.from(scv.str() as unknown as Uint8Array).toString("utf8")}_mutated`);
+    case SCV.scvSymbol():
+      return xdr.ScVal.scvSymbol(`${Buffer.from(scv.sym() as unknown as Uint8Array).toString("utf8")}_mutated`);
+    case SCV.scvAddress():
+      return mutateAddressScVal(scv);
+    case SCV.scvVec(): {
+      const values = [...(scv.vec() ?? [])];
+      if (values.length === 0) return xdr.ScVal.scvVec([xdr.ScVal.scvBool(true)]);
+      values[0] = mutateScVal(values[0]!, `${hint}[0]`);
+      return xdr.ScVal.scvVec(values);
+    }
+    case SCV.scvMap(): {
+      const entries = [...(scv.map() ?? [])];
+      if (entries.length === 0) {
+        return xdr.ScVal.scvMap([
+          new xdr.ScMapEntry({ key: xdr.ScVal.scvSymbol("mutated"), val: xdr.ScVal.scvBool(true) }),
+        ]);
+      }
+      const first = entries[0]!;
+      entries[0] = new xdr.ScMapEntry({ key: first.key(), val: mutateScVal(first.val(), `${hint}.value`) });
+      return xdr.ScVal.scvMap(entries);
+    }
+    default:
+      return xdr.ScVal.scvBytes(Buffer.from(`mutated:${hint}`, "utf8"));
+  }
+}
+
+function mutateAddressScVal(scv: xdr.ScVal): xdr.ScVal {
+  const address = Address.fromScVal(scv).toString();
+  if (address.startsWith("G")) {
+    return Address.fromString(StrKey.encodeEd25519PublicKey(Buffer.alloc(32, 7))).toScVal();
+  }
+  return Address.fromString(StrKey.encodeContract(Buffer.alloc(32, 9))).toScVal();
+}
+
+function sortScMapEntries(entries: xdr.ScMapEntry[]): xdr.ScMapEntry[] {
+  return entries.sort((a, b) => compareScSymbol(a.key(), b.key()));
+}
+
+function compareScSymbol(a: xdr.ScVal, b: xdr.ScVal): number {
+  const left = Buffer.from(a.sym() as unknown as Uint8Array).toString("utf8");
+  const right = Buffer.from(b.sym() as unknown as Uint8Array).toString("utf8");
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 // --- Path resolution (FN-ST.22) ------------------------------------------

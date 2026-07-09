@@ -28,6 +28,35 @@ export const DemoActionSchema = z.object({
   amount_xlm: z.number().positive(),
 });
 
+export const InstallActionSchema = z.object({
+  kind: z.literal("session_rule"),
+  account: z.string().min(1),
+  owner_credential_id: z.string().optional(),
+  target_contract: z.string().min(1),
+  rule_name: z.string().min(1),
+  valid_until_ledger: z.number().int().min(1),
+  session_signer: z.object({
+    verifier: z.string().min(1),
+    public_key_hex: z.string().regex(/^[0-9a-f]+$/iu),
+  }),
+  policies: z.object({
+    simple_threshold: z.object({
+      address: z.string().min(1),
+      threshold: z.number().int().min(1),
+    }).optional(),
+    spending_limit: z.object({
+      address: z.string().min(1),
+      spending_limit_stroops: z.string().regex(/^\d+$/u),
+      period_ledgers: z.number().int().min(1),
+    }).optional(),
+    custom: z.array(z.object({
+      address: z.string().min(1),
+      classification: z.string().min(1),
+      params_xdr_b64: z.string().min(1),
+    })).optional(),
+  }).optional(),
+});
+
 export interface McpToolContext {
   bridge: WalletBridge;
 }

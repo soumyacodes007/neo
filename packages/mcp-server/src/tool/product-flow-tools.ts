@@ -7,6 +7,8 @@ import { registerExplainPolicyTool } from "./explain-policy.js";
 import { registerGenerateCustomPolicyCodeTool } from "./generate-custom-policy-code.js";
 import { registerInstallPolicyTool } from "./install-policy.js";
 import { registerPrepareActionTool } from "./prepare-action.js";
+import { registerPrepareSessionPolicyInstallTool } from "./prepare-session-policy-install.js";
+import { registerPrepareVerificationProfileTool } from "./prepare-verification-profile.js";
 import { registerRecordTransactionTool } from "./record-transaction.js";
 import { registerRequestOwnerApprovalTool } from "./request-owner-approval.js";
 import { registerRevokePolicyTool } from "./revoke-policy.js";
@@ -25,6 +27,8 @@ const productFlowModules: RegisterToolModule[] = [
   registerRequestOwnerApprovalTool,
   registerRecordTransactionTool,
   registerDraftPolicyFromRecordingTool,
+  registerPrepareVerificationProfileTool,
+  registerPrepareSessionPolicyInstallTool,
   registerGenerateCustomPolicyCodeTool,
   registerVerifyPolicyTool,
   registerExplainPolicyTool,

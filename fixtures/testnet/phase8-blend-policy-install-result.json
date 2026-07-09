@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.blend-policy-install",
+  "created_at": "2026-07-09T20:37:48.779Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "plan_path": "fixtures\\testnet\\phase8-blend-policy-plan.json",
+  "installs": [
+    {
+      "rule_name": "ozpb-blend-7",
+      "tx_hash": "b6c78cf110cbd953ac4b597ec2cacb93fcdd6ad829947b815c55a346045e22a0",
+      "ledger": 3522709,
+      "wallet": {
+        "sdk": "smart-account-kit",
+        "sdk_version": "0.2.10",
+        "signer_kind": "webauthn",
+        "public_signer_ref": "2qMSQEyUL3-nVCVp_KBmZg",
+        "public_key_hint": "04a81b100972bb28acd11e8fdb187d5a0e1b90060b4f2c4e53ea40c64814ca5ac598e876a53d314b38a14bb8f6e5db8e4bd7570b2e7a531876889c85b431aada8c"
+      }
+    },
+    {
+      "rule_name": "ozpb-btok-8",
+      "tx_hash": "b0c8a9e7be3aaf3feda1f3ee2d7336ce7f12d4b92fcc8580b264bc6c4fa84381",
+      "ledger": 3522712,
+      "wallet": {
+        "sdk": "smart-account-kit",
+        "sdk_version": "0.2.10",
+        "signer_kind": "webauthn",
+        "public_signer_ref": "2qMSQEyUL3-nVCVp_KBmZg",
+        "public_key_hint": "04a81b100972bb28acd11e8fdb187d5a0e1b90060b4f2c4e53ea40c64814ca5ac598e876a53d314b38a14bb8f6e5db8e4bd7570b2e7a531876889c85b431aada8c"
+      }
+    }
+  ],
+  "readback": {
+    "before_rule_count": 7,
+    "after_rule_count": 9,
+    "installed_rules": [
+      {
+        "id": 7,
+        "name": "ozpb-blend-7",
+        "context_type": {
+          "kind": "call_contract",
+          "address": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF"
+        },
+        "valid_until_ledger": 3523425,
+        "signers": [
+          {
+            "signer": {
+              "type": "external",
+              "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+              "key_data_b64": "DEC5QHpTpUoXFz5VybR07sYrqKsJYHZmMIjwMuSRbK0=",
+              "verifier_kind": "unknown"
+            },
+            "signer_id": 2,
+            "canonical_hash": "803e1cac8dffc19d2922b98dd2950dcf0cd60e3b7ae8b0e9f884c5396f6677a3"
+          }
+        ],
+        "policies": [
+          {
+            "address": "CADIBF4HZOMPVC5STXKCUAMAPGGJYI5EXMWEESKBSRAWOCBLSA22IKMZ",
+            "policy_id": 1,
+            "classification": "pb:arg_guard",
+            "wasm_hash": "927587ff25c5e6eebc8b69293414461eb3c7139b8adf03a6d0bb6ab20bdf43a5"
+          },
+          {
+            "address": "CBZUMOD3JEQOFYTUM5SDSBNOAOP25VLS2DDKDCG6T4RQPR2KE6SRC6YH",
+            "policy_id": 2,
+            "classification": "pb:function_allowlist",
+            "wasm_hash": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af"
+          },
+          {
+            "address": "CCHNJ6NBQAKM6NOVQFUSKUOP4TQDZERVWNHQVG7KWT3ANJ3VESZKDY22",
+            "policy_id": 4,
+            "classification": "pb:call_cap",
+            "wasm_hash": "e91086d4a3ce0e5b0fdfb7711d8b9b30f4e379f54643ae5519b7ff86c7ab6091"
+          }
+        ],
+        "privilege": "scoped",
+        "status": "active"
+      },
+      {
+        "id": 8,
+        "name": "ozpb-btok-8",
+        "context_type": {
+          "kind": "call_contract",
+          "address": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+        },
+        "valid_until_ledger": 3523425,
+        "signers": [
+          {
+            "signer": {
+              "type": "external",
+              "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+              "key_data_b64": "DEC5QHpTpUoXFz5VybR07sYrqKsJYHZmMIjwMuSRbK0=",
+              "verifier_kind": "unknown"
+            },
+            "signer_id": 2,
+            "canonical_hash": "803e1cac8dffc19d2922b98dd2950dcf0cd60e3b7ae8b0e9f884c5396f6677a3"
+          }
+        ],
+        "policies": [
+          {
+            "address": "CADIBF4HZOMPVC5STXKCUAMAPGGJYI5EXMWEESKBSRAWOCBLSA22IKMZ",
+            "policy_id": 1,
+            "classification": "pb:arg_guard",
+            "wasm_hash": "927587ff25c5e6eebc8b69293414461eb3c7139b8adf03a6d0bb6ab20bdf43a5"
+          },
+          {
+            "address": "CBZUMOD3JEQOFYTUM5SDSBNOAOP25VLS2DDKDCG6T4RQPR2KE6SRC6YH",
+            "policy_id": 2,
+            "classification": "pb:function_allowlist",
+            "wasm_hash": "9da61fa160f5f0919b225bc5fb3719b0c36a6b7654096c9b9d9e07624df684af"
+          },
+          {
+            "address": "CCHNJ6NBQAKM6NOVQFUSKUOP4TQDZERVWNHQVG7KWT3ANJ3VESZKDY22",
+            "policy_id": 4,
+            "classification": "pb:call_cap",
+            "wasm_hash": "e91086d4a3ce0e5b0fdfb7711d8b9b30f4e379f54643ae5519b7ff86c7ab6091"
+          }
+        ],
+        "privilege": "scoped",
+        "status": "active"
+      }
+    ],
+    "snapshot_hash": "d9275a0dcd3de0323c518ab91b6764a74900bebecef8056143584a8b55752d63"
+  },
+  "blend": {
+    "registry_url": "https://raw.githubusercontent.com/blend-capital/blend-utils/main/testnet.contracts.json",
+    "pool": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "reserve": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "request_type": "SupplyCollateral",
+    "request_type_id": 2,
+    "amount": "100000"
+  },
+  "guarantees": {
+    "root": "Blend pool submit only",
+    "subcall": "reserve transfer from smart account to selected pool only",
+    "request_type": "SupplyCollateral",
+    "reserve": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "max_amount_i128": "100000",
+    "owner_passkey_required_for_unmatched_action": true
+  },
+  "session_signer": {
+    "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+    "public_key_hex": "0c40b9407a53a54a17173e55c9b474eec62ba8ab096076663088f032e4916cad",
+    "secret_storage": ".tmp\\phase8-blend-session-key.json"
+  }
+}

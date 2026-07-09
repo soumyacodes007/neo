@@ -1,0 +1,41 @@
+{
+  "schema_version": "1",
+  "created_at": "2026-07-09T20:39:46.624Z",
+  "test_id": "phase8.blend-mcp-session-routing",
+  "source_fixtures": {
+    "install": "fixtures/testnet/phase8-blend-policy-install-result.json",
+    "plan": "fixtures/testnet/phase8-blend-policy-plan.json"
+  },
+  "installed": [
+    {
+      "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+      "fn": "submit",
+      "max_amount_i128": "100000",
+      "valid_until_ledger": 3523425
+    }
+  ],
+  "matching": {
+    "status": "ready_for_session_signature",
+    "coverage": {
+      "covered": true,
+      "pattern": {
+        "contract": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "fn": "submit",
+        "max_amount_i128": "100000",
+        "valid_until_ledger": 3523425
+      },
+      "reason": "matched_policy"
+    },
+    "next_step": "sign this action with the scoped Ed25519/session signer, then call this tool with signed_xdr"
+  },
+  "changed_amount": {
+    "status": "fallback_required",
+    "reason": "amount_exceeds_policy",
+    "next_tool": "ozpb_request_owner_approval"
+  },
+  "changed_function": {
+    "status": "fallback_required",
+    "reason": "no_matching_policy",
+    "next_tool": "ozpb_request_owner_approval"
+  }
+}

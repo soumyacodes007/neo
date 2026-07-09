@@ -11,11 +11,13 @@ import { registerDetectBypassTool } from "./detect-bypass.js";
 import { registerExtractAuthContextsTool } from "./extract-auth-contexts.js";
 import { registerGenerateTestsTool } from "./generate-tests.js";
 import { registerHealthTool } from "./health.js";
+import { registerInspectAccountTool } from "./inspect-account.js";
 import { registerLookupTransactionsTool } from "./lookup-transactions.js";
 import { registerMatchPoliciesTool } from "./match-policies.js";
 import { registerMaterializeGeneratedPolicyTool } from "./materialize-generated-policy.js";
 import { registerPrepareInstallPlanTool } from "./prepare-install-plan.js";
 import { registerRecordEvidenceTool } from "./record-evidence.js";
+import { registerReviewGeneratedPolicyTool } from "./review-generated-policy.js";
 import { registerRunSimulationTool } from "./run-simulation.js";
 import { registerSignPlanApprovalTool } from "./sign-plan-approval.js";
 import { registerSubmitSignedXdrTool } from "./submit-signed-xdr.js";
@@ -26,6 +28,7 @@ import type { RegisterToolModule } from "./types.js";
 
 const splitToolModules: RegisterToolModule[] = [
   registerHealthTool,
+  registerInspectAccountTool,
   registerCreateWalletApprovalTool,
   registerConnectWalletApprovalTool,
   registerSignPlanApprovalTool,
@@ -45,6 +48,7 @@ const splitToolModules: RegisterToolModule[] = [
   registerAuthorPolicyDraftTool,
   registerMaterializeGeneratedPolicyTool,
   registerCompileGeneratedPolicyTool,
+  registerReviewGeneratedPolicyTool,
   registerAssertTestnetDemoFixtureTool,
   registerWorkflowStatusTool,
 ];

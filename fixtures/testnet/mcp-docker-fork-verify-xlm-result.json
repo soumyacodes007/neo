@@ -1,0 +1,404 @@
+{
+  "schema_version": "1",
+  "created_at": "2026-07-09T18:54:14.164Z",
+  "source_fixture": "fixtures/testnet/mcp-product-flow-integration-xlm-result.json",
+  "summary": {
+    "verdict": "all_green",
+    "engine": "fork",
+    "cases": 7,
+    "install_allowed": true
+  },
+  "verify": {
+    "cases": [
+      {
+        "id": "t:0",
+        "kind": "allow",
+        "origin": {
+          "kind": "observed",
+          "provenance": {
+            "kind": "default",
+            "rule": "generated-test"
+          }
+        },
+        "context": {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "args_scval_b64": [
+            "AAAAEgAAAAFUrm7Txg2xZnx6hDgPEao5Fbk/YzQQme39uYmRJCwC7g==",
+            "AAAAEgAAAAAAAAAAktNtNnxq8CJ8s2OC2c+VfeOSQCtMLMJiNh5geOO9VwE=",
+            "AAAACgAAAAAAAAAAAAAAAACYloA="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 0,
+        "expected": {
+          "kind": "pass"
+        }
+      },
+      {
+        "id": "t:1",
+        "kind": "deny",
+        "origin": {
+          "kind": "mutation",
+          "operator": "wrong_function",
+          "base_case": "0:func_allowlist"
+        },
+        "context": {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "__unlisted_fn__",
+          "args_scval_b64": [
+            "AAAAEgAAAAFUrm7Txg2xZnx6hDgPEao5Fbk/YzQQme39uYmRJCwC7g==",
+            "AAAAEgAAAAAAAAAAktNtNnxq8CJ8s2OC2c+VfeOSQCtMLMJiNh5geOO9VwE=",
+            "AAAACgAAAAAAAAAAAAAAAACYloA="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 0,
+        "expected": {
+          "kind": "panic",
+          "contract_error_code": 3303
+        }
+      },
+      {
+        "id": "t:2",
+        "kind": "deny",
+        "origin": {
+          "kind": "mutation",
+          "operator": "wrong_contract",
+          "base_case": "0:func_allowlist"
+        },
+        "context": {
+          "contract": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+          "fn_name": "transfer",
+          "args_scval_b64": [
+            "AAAAEgAAAAFUrm7Txg2xZnx6hDgPEao5Fbk/YzQQme39uYmRJCwC7g==",
+            "AAAAEgAAAAAAAAAAktNtNnxq8CJ8s2OC2c+VfeOSQCtMLMJiNh5geOO9VwE=",
+            "AAAACgAAAAAAAAAAAAAAAACYloA="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 0,
+        "expected": {
+          "kind": "panic",
+          "contract_error_code": 3303
+        }
+      },
+      {
+        "id": "t:3",
+        "kind": "deny",
+        "origin": {
+          "kind": "mutation",
+          "operator": "expired_window",
+          "base_case": "0:expiry"
+        },
+        "context": {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "args_scval_b64": [
+            "AAAAEgAAAAFUrm7Txg2xZnx6hDgPEao5Fbk/YzQQme39uYmRJCwC7g==",
+            "AAAAEgAAAAAAAAAAktNtNnxq8CJ8s2OC2c+VfeOSQCtMLMJiNh5geOO9VwE=",
+            "AAAACgAAAAAAAAAAAAAAAACYloA="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 1,
+        "expected": {
+          "kind": "panic",
+          "contract_error_code": 3013
+        }
+      },
+      {
+        "id": "t:4",
+        "kind": "deny",
+        "origin": {
+          "kind": "mutation",
+          "operator": "arg_tamper",
+          "base_case": "0:arg:transfer:0"
+        },
+        "context": {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "args_scval_b64": [
+            "AAAAEgAAAAEJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQ==",
+            "AAAAEgAAAAAAAAAAktNtNnxq8CJ8s2OC2c+VfeOSQCtMLMJiNh5geOO9VwE=",
+            "AAAACgAAAAAAAAAAAAAAAACYloA="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 0,
+        "expected": {
+          "kind": "panic",
+          "contract_error_code": 3325
+        }
+      },
+      {
+        "id": "t:5",
+        "kind": "deny",
+        "origin": {
+          "kind": "mutation",
+          "operator": "arg_tamper",
+          "base_case": "0:arg:transfer:1"
+        },
+        "context": {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "args_scval_b64": [
+            "AAAAEgAAAAFUrm7Txg2xZnx6hDgPEao5Fbk/YzQQme39uYmRJCwC7g==",
+            "AAAAEgAAAAAAAAAABwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=",
+            "AAAACgAAAAAAAAAAAAAAAACYloA="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 0,
+        "expected": {
+          "kind": "panic",
+          "contract_error_code": 3325
+        }
+      },
+      {
+        "id": "t:6",
+        "kind": "deny",
+        "origin": {
+          "kind": "mutation",
+          "operator": "amount_plus_epsilon",
+          "base_case": "evidence:CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC:transfer:amount_cap"
+        },
+        "context": {
+          "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+          "fn_name": "transfer",
+          "args_scval_b64": [
+            "AAAAEgAAAAFUrm7Txg2xZnx6hDgPEao5Fbk/YzQQme39uYmRJCwC7g==",
+            "AAAAEgAAAAAAAAAAktNtNnxq8CJ8s2OC2c+VfeOSQCtMLMJiNh5geOO9VwE=",
+            "AAAACgAAAAAAAAAAAAAAAACYloE="
+          ]
+        },
+        "signer_set": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "ledger_offset": 0,
+        "expected": {
+          "kind": "panic",
+          "contract_error_code": 3344
+        }
+      }
+    ],
+    "simulation_report": {
+      "schema_version": "1",
+      "ruleset_hash": "065e7cf7d2bcd8b45a19adbc34f5edd414c403033f085c429d9c4b882d613ffa",
+      "engine_runs": [
+        {
+          "engine": "fork",
+          "toolchain_fingerprint": "rust-harness",
+          "cases": [
+            {
+              "case_id": "t:0",
+              "outcome": "pass",
+              "detail": null
+            },
+            {
+              "case_id": "t:1",
+              "outcome": "pass",
+              "detail": "HostError: Error(Contract, #3303)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM, topics:[error, Error(Contract, #3303)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM, topics:[error, Error(Contract, #3303)], data:[\"failing with contract error\", 3303]\n"
+            },
+            {
+              "case_id": "t:2",
+              "outcome": "pass",
+              "detail": "#3303 context contract not allowed"
+            },
+            {
+              "case_id": "t:3",
+              "outcome": "pass",
+              "detail": "#3013 context rule expired"
+            },
+            {
+              "case_id": "t:4",
+              "outcome": "pass",
+              "detail": "HostError: Error(Contract, #3325)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:[\"failing with contract error\", 3325]\n"
+            },
+            {
+              "case_id": "t:5",
+              "outcome": "pass",
+              "detail": "HostError: Error(Contract, #3325)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4, topics:[error, Error(Contract, #3325)], data:[\"failing with contract error\", 3325]\n"
+            },
+            {
+              "case_id": "t:6",
+              "outcome": "pass",
+              "detail": "HostError: Error(Contract, #3344)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M, topics:[error, Error(Contract, #3344)], data:\"escalating error to panic\"\n   1: [Diagnostic Event] contract:CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M, topics:[error, Error(Contract, #3344)], data:[\"failing with contract error\", 3344]\n"
+            }
+          ]
+        }
+      ],
+      "coverage": {
+        "constraints_exercised": [
+          "0:arg:transfer:0",
+          "0:arg:transfer:1",
+          "0:expiry",
+          "0:func_allowlist",
+          "evidence:CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC:transfer:amount_cap"
+        ],
+        "constraints_total": 5
+      },
+      "verdict": "all_green",
+      "artifacts_dir": "sim/065e7cf7d2bc",
+      "report_hash": "5b9bd298577ed17e87f8c41d08bea416f0fe34ccc1ecaa55bc821f6541ebfc12"
+    },
+    "bypass_report": {
+      "schema_version": "1",
+      "snapshot_hash": "8ef5c275fc0040a1d309e7630bffc62509248c3a7cffd6a45f43d9d4a24d2ddd",
+      "ruleset_hash": "065e7cf7d2bcd8b45a19adbc34f5edd414c403033f085c429d9c4b882d613ffa",
+      "threat_model": {
+        "grantee_signers": [
+          {
+            "type": "external",
+            "verifier": "CCJOUKLCZVCXS4VIBBEA7S3SPWZQS5DPE5A4YG67RA3Z7E3SJZAUJFQA",
+            "key_data_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "verifier_kind": "ed25519"
+          }
+        ],
+        "extra_compromised": 0
+      },
+      "findings": [
+        {
+          "rule_id": 0,
+          "context": {
+            "kind": "call_contract",
+            "target": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+            "fn_name": "add_context_rule"
+          },
+          "verdict": "SAFE",
+          "reasoning": {
+            "policy_semantics": "none",
+            "threat_keys": 1
+          },
+          "recommendation": {
+            "kind": "none"
+          }
+        },
+        {
+          "rule_id": 0,
+          "context": {
+            "kind": "call_contract",
+            "target": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+          },
+          "verdict": "SAFE",
+          "reasoning": {
+            "policy_semantics": "none",
+            "threat_keys": 1
+          },
+          "recommendation": {
+            "kind": "none"
+          }
+        },
+        {
+          "rule_id": 0,
+          "context": {
+            "kind": "default"
+          },
+          "verdict": "SAFE",
+          "reasoning": {
+            "policy_semantics": "none",
+            "threat_keys": 1
+          },
+          "recommendation": {
+            "kind": "none"
+          }
+        },
+        {
+          "rule_id": 1,
+          "context": {
+            "kind": "call_contract",
+            "target": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+          },
+          "verdict": "SAFE",
+          "reasoning": {
+            "policy_semantics": "known",
+            "threat_keys": 1
+          },
+          "recommendation": {
+            "kind": "none"
+          }
+        },
+        {
+          "rule_id": 2,
+          "context": {
+            "kind": "call_contract",
+            "target": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+          },
+          "verdict": "SAFE",
+          "reasoning": {
+            "policy_semantics": "known",
+            "threat_keys": 1
+          },
+          "recommendation": {
+            "kind": "none"
+          }
+        },
+        {
+          "rule_id": 3,
+          "context": {
+            "kind": "call_contract",
+            "target": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+          },
+          "verdict": "SAFE",
+          "reasoning": {
+            "policy_semantics": "known",
+            "threat_keys": 1
+          },
+          "recommendation": {
+            "kind": "none"
+          }
+        }
+      ],
+      "exhaustive": true,
+      "report_hash": "bb72af0d0f3e9e1611b4461808aef3b9dc0a39a074044ebe1865ba20e513c447"
+    },
+    "install_allowed": true
+  }
+}

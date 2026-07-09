@@ -1,23 +1,23 @@
 {
   "schema_version": "1",
   "test_id": "phase8.strict-policy-use",
-  "created_at": "2026-07-08T21:08:18.002Z",
+  "created_at": "2026-07-09T18:55:32.271Z",
   "network": "testnet",
   "rpc_url": "https://soroban-testnet.stellar.org",
   "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
-  "rule_id": 4,
-  "rule_name": "ozpb-composed-4",
+  "rule_id": 6,
+  "rule_name": "ozpb-composed-6",
   "matching": {
     "accepted": true,
     "owner_passkey_used": false,
     "transaction": {
       "status": "SUCCESS",
-      "hash": "df8cc6af0640ad88a8d531d9f8cd876c2e94c2914dcecd62b8d3cfd937fe4720",
-      "ledger": 3505827,
+      "hash": "4da0d0f51d487cbd25d5ef00d8d7a6872307eed4430ab2316ad31adef76f6285",
+      "ledger": 3521487,
       "fn": "transfer",
-      "auth_digest_hex": "222329c2b2655325b09772585f7cb3f64316c141a7afb3921127132b2edd627c",
+      "auth_digest_hex": "c566e6bd6ccd07d3a43ad46e287f4e21113675125dcffff1b428ed4f856ffed4",
       "context_rule_ids": [
-        4
+        6
       ]
     },
     "token_deltas": [
@@ -36,36 +36,36 @@
       "accepted": false,
       "expected_failure": true,
       "phase": "ledger_result",
-      "transaction_hash": "b5f83c8374419344863f2816d3583583369fe86ec9600a4e1fd31ec761fc45e5",
-      "ledger": 3505823,
+      "transaction_hash": "6b18ace2782c6cdef41c6cba9d4ee10e66fea7b9bfd4a6ee89bc8be35ffcd143",
+      "ledger": 3521484,
       "final_status": "FAILED",
-      "auth_digest_hex": "80b246767a576c2fa332087018a3128380feedcf5c82f7bb021bc6fd4eac040b",
+      "auth_digest_hex": "b51ff1d6406e2d75f5c44bb45bfc2684c8cd8cf831cce0cfb18de6392ce99e9e",
       "context_rule_ids": [
-        4
+        6
       ]
     },
     "wrong_recipient": {
       "accepted": false,
       "expected_failure": true,
       "phase": "ledger_result",
-      "transaction_hash": "e91467be17005d801a49de7533464386df9a15ef26590cee7b92d7546f8cdcfe",
-      "ledger": 3505824,
+      "transaction_hash": "ca471c5a8cd990f02568de00e3b25d7e90b19ec2af0a83e1f5e39d5c68585703",
+      "ledger": 3521485,
       "final_status": "FAILED",
-      "auth_digest_hex": "f0e134fcc9cae4c3cf1515162277da80dd7edeb2fd962b1312e662a4470c93b0",
+      "auth_digest_hex": "6357a35f367ebce1e708e540f5b1afe5924ea42a0f19eec835cb09054a6bca51",
       "context_rule_ids": [
-        4
+        6
       ]
     },
     "wrong_function": {
       "accepted": false,
       "expected_failure": true,
       "phase": "ledger_result",
-      "transaction_hash": "0db1147c62cf2d0197389a559b1901ccc30c6d20ae5a07acb28d757045130478",
-      "ledger": 3505825,
+      "transaction_hash": "d2e59faf0bba0108fbf746ec998b7144b29b3fbe363dc5dff8fcdc47a6d0758f",
+      "ledger": 3521486,
       "final_status": "FAILED",
-      "auth_digest_hex": "2fbb6e418dcd4a667b579e1fa6c1bb21e4a5c1f3a7e0598e357ddfd3b629000a",
+      "auth_digest_hex": "0784a41cf0957adecd4ff8dd794f52ed6568df8f5ea7b292e39c68258d27289b",
       "context_rule_ids": [
-        4
+        6
       ]
     }
   },
@@ -80,8 +80,8 @@
     "owner_passkey_required_for_any_unmatched_action": true
   },
   "readback": {
-    "rule_count": 5,
-    "snapshot_hash": "8b61ee291fb06ceb16efc4d9abb1e16e5edaa2b8d647400a61b4303644cd0002"
+    "rule_count": 7,
+    "snapshot_hash": "888e194cb98dbddac25a62aeec5b09ff60485b67ea3a528a857cba3550013864"
   },
   "source_fixtures": {
     "install": "fixtures\\testnet\\phase8-composed-policy-install-result.json",

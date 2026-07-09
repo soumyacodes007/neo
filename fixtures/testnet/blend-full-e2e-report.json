@@ -1,0 +1,75 @@
+{
+  "schema_version": "1",
+  "test_id": "blend-full-end-to-end-mcp-browser-docker-session",
+  "created_at": "2026-07-09T20:40:15.979Z",
+  "network": "testnet",
+  "source_fixtures": {
+    "record_generate": "fixtures/testnet/phase8-blend-record-generate-result.json",
+    "docker_verify": "fixtures/testnet/phase8-blend-docker-fork-report.json",
+    "install": "fixtures/testnet/phase8-blend-policy-install-result.json",
+    "use": "fixtures/testnet/phase8-blend-policy-use-result.json",
+    "routing": "fixtures/testnet/phase8-blend-mcp-session-routing-result.json"
+  },
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "one_off_recording": {
+    "tx_hash": "a7f0f8bc4fae595c795491fb898a29f08bd05a9206325bffc31d952908760563",
+    "ledger": 3522582,
+    "status": "recorded_and_drafted_verify_gate_failed_legacy_fake",
+    "evidence_contexts": 2,
+    "drafted_rules": 2
+  },
+  "docker_fork_verification": {
+    "verdict": "pass",
+    "cases": 4
+  },
+  "browser_install": {
+    "rules": [
+      {
+        "id": 7,
+        "name": "ozpb-blend-7",
+        "target": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "policies": [
+          "pb:arg_guard",
+          "pb:function_allowlist",
+          "pb:call_cap"
+        ]
+      },
+      {
+        "id": 8,
+        "name": "ozpb-btok-8",
+        "target": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "policies": [
+          "pb:arg_guard",
+          "pb:function_allowlist",
+          "pb:call_cap"
+        ]
+      }
+    ],
+    "tx_hashes": [
+      "b6c78cf110cbd953ac4b597ec2cacb93fcdd6ad829947b815c55a346045e22a0",
+      "b0c8a9e7be3aaf3feda1f3ee2d7336ce7f12d4b92fcc8580b264bc6c4fa84381"
+    ],
+    "before_rule_count": 7,
+    "after_rule_count": 9
+  },
+  "session_key_use": {
+    "matching_accepted": true,
+    "owner_passkey_used": false,
+    "tx_hash": "1cc1efeaa3637a50080b5188100bf9c49c717c96b780d19b5069c9e5e429269c",
+    "ledger": 3522732,
+    "context_rule_ids": [
+      7,
+      8
+    ]
+  },
+  "deny_cases": {
+    "amount_plus_one": "FAILED",
+    "wrong_reserve_phase": "unsigned_simulation"
+  },
+  "mcp_routing": {
+    "matching": "ready_for_session_signature",
+    "changed_amount": "fallback_required",
+    "changed_function": "fallback_required"
+  },
+  "pass": true
+}

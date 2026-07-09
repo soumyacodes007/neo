@@ -78,11 +78,29 @@ export async function createSnapshot(input: CreateSnapshotInput): Promise<Create
   for (const address of addresses) args.push("--address", address);
 
   const runner = input.runProcess ?? runProcess;
-  const result = await runner(stellarBin, args, { cwd });
+  const result = stellarBin === "wsl:stellar"
+    ? await runner("wsl", ["bash", "-lc", ["stellar", ...args.map(convertWslArg)].map(shellQuote).join(" ")], { cwd })
+    : await runner(stellarBin, args, { cwd });
   if (result.code !== 0) {
     throw new Error(`stellar snapshot create failed (${result.code}): ${result.stderr || result.stdout}`);
   }
   return { snapshot_path: input.outPath, addresses, ledger: input.ledger, command: [stellarBin, ...args], stderr: result.stderr };
+}
+
+function convertWslArg(arg: string, index: number, args: string[]): string {
+  if (args[index - 1] !== "--out") return arg;
+  return windowsPathToWsl(arg);
+}
+
+function windowsPathToWsl(value: string): string {
+  const normalized = value.replaceAll("\\", "/");
+  const m = /^([A-Za-z]):\/(.*)$/u.exec(normalized);
+  if (m === null) return normalized;
+  return `/mnt/${m[1]!.toLowerCase()}/${m[2]!}`;
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
 function runProcess(cmd: string, args: string[], opts: { cwd: string }): Promise<SnapshotProcessResult> {

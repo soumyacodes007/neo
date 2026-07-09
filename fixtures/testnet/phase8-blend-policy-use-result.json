@@ -1,0 +1,87 @@
+{
+  "schema_version": "1",
+  "test_id": "phase8.blend-policy-use",
+  "created_at": "2026-07-09T20:39:26.603Z",
+  "network": "testnet",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+  "blend": {
+    "pool": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "reserve": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "wrong_reserve": "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
+    "amount": "100000",
+    "request_type": "SupplyCollateral"
+  },
+  "rule_ids": {
+    "pool": 7,
+    "token": 8,
+    "context_rule_ids": [
+      7,
+      8
+    ]
+  },
+  "funding": {
+    "reserve": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "amount": "200000",
+    "tx_hash": "6da6344b71adcfc1c074398826b7520b3fe87ea0660bbda9cb27671b76124b23",
+    "status": "SUCCESS",
+    "ledger": 3522729
+  },
+  "matching": {
+    "accepted": true,
+    "owner_passkey_used": false,
+    "transaction": {
+      "status": "SUCCESS",
+      "hash": "1cc1efeaa3637a50080b5188100bf9c49c717c96b780d19b5069c9e5e429269c",
+      "ledger": 3522732,
+      "auth_digest_hex": "47a7f560b669677f63e8b6b00a049bbde0a1b0f6c2e38db462e060273a84cde6",
+      "context_rule_ids": [
+        7,
+        8
+      ]
+    },
+    "token_deltas": [
+      {
+        "token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+        "from": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
+        "to": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+        "amount": "100000",
+        "decimals": 0,
+        "source": "event"
+      }
+    ]
+  },
+  "deny_cases": {
+    "amount_plus_one": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "ledger_result",
+      "transaction_hash": "7ca9f1079370148c667939efe67bfd27fa6c72e3b553fec9bfd9822217ad1ae5",
+      "ledger": 3522730,
+      "final_status": "FAILED",
+      "auth_digest_hex": "ef2560756168865ffad8c636c22e0eba154a0097ebcf6201522ad9a79d53e501",
+      "context_rule_ids": [
+        7,
+        8
+      ]
+    },
+    "wrong_reserve": {
+      "accepted": false,
+      "expected_failure": true,
+      "phase": "unsigned_simulation",
+      "error": "Blend deny wrong reserve simulation failed: HostError: Error(Contract, #10)\n\nEvent log (newest first):\n   0: [Diagnostic Event] contract:CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, topics:[error, Error(Contract, #10)], data:\"escalating error to VM trap from failed host function call: call\"\n   1: [Diagnostic Event] contract:CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, topics:[error, Error(Contract, #10)], data:[\"contract call failed\", transfer, [CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM, CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, 100000]]\n   2: [Failed Diagnostic Event (not emitted)] contract:CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU, topics:[error, Error(Contract, #10)], data:[\"zero balance is not sufficient to spend\", 100000]\n   3: [Diagnostic Event] contract:CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, topics:[fn_call, CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU, transfer], data:[CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM, CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, 100000]\n   4: [Contract Event] contract:CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, topics:[supply_collateral, CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU, CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM], data:[100000, 94714]\n   5: [Diagnostic Event] topics:[fn_call, CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF, submit], data:[CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM, CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM, CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM, [{address: CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU, amount: 100000, request_type: 2}]]\n",
+      "context_rule_ids": [
+        7,
+        8
+      ]
+    }
+  },
+  "readback": {
+    "rule_count": 9,
+    "snapshot_hash": "4427c1b43ae425cbd7b188e5c67e7e7313d0f1d84375da273c5760b47ea8d288"
+  },
+  "source_fixtures": {
+    "install": "fixtures\\testnet\\phase8-blend-policy-install-result.json",
+    "plan": "fixtures\\testnet\\phase8-blend-policy-plan.json"
+  }
+}

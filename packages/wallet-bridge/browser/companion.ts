@@ -237,22 +237,33 @@ async function runOneOff(): Promise<void> {
     if (request.payload.expected_signer.account && connected.contractId !== request.payload.expected_signer.account) {
       throw new Error(`Connected account ${connected.contractId} does not match requested account ${request.payload.expected_signer.account}`);
     }
+    const credentialId = connected.credentialId ?? request.payload.expected_signer.credential_id;
+    const publicKeyHex = connected.credential?.publicKey
+      ? bytesToHex(connected.credential.publicKey)
+      : request.payload.expected_signer.public_key_hint;
+    if (!credentialId) throw new Error("Could not determine credential ID");
     const tx = action.kind === "xlm_transfer"
-      ? await kit.transfer(action.token_contract, action.recipient, action.amount_xlm, { forceMethod: "rpc" })
+      ? await submitTokenTransferAction(
+        kit,
+        connected.contractId,
+        action,
+        credentialId,
+        publicKeyHex,
+      )
       : await submitBlendAction(
         kit,
         connected.contractId,
         action,
-        connected.credentialId,
-        connected.credential?.publicKey ? bytesToHex(connected.credential.publicKey) : request.payload.expected_signer.public_key_hint,
+        credentialId,
+        publicKeyHex,
       );
     if (!tx.success || !tx.hash) throw new Error(tx.error ?? "Transaction failed");
     const step = request.payload.steps[0] ?? { order: 1, step_hash: "one_off_action" };
     await postResult({
       ...resultBase(
         connected.contractId,
-        connected.credentialId,
-        connected.credential?.publicKey ? bytesToHex(connected.credential.publicKey) : undefined,
+        credentialId,
+        publicKeyHex,
       ),
       signed_steps: [{
         order: step.order,
@@ -264,6 +275,65 @@ async function runOneOff(): Promise<void> {
   } catch (error: unknown) {
     setStatus(messageOf(error), "error");
   }
+}
+
+async function submitTokenTransferAction(
+  kit: SmartAccountKit,
+  account: string,
+  action: Extract<WalletDemoAction, { kind: "xlm_transfer" }>,
+  credentialId: string,
+  publicKeyHex: string | undefined,
+): Promise<{ success: boolean; hash?: string; ledger?: number; error?: string }> {
+  const cfg = request.payload.wallet_kit;
+  if (!cfg) throw new Error("Missing smart-account-kit config");
+  if (!publicKeyHex) throw new Error("Connected passkey did not expose a public key hint for known-signer signing");
+  const amount = xlmAmountToStroops(action.amount_xlm);
+  const rawKit = kit as unknown as {
+    simulateHostFunction?: (hostFunc: xdr.HostFunction) => Promise<{ authEntries: xdr.SorobanAuthorizationEntry[] }>;
+    rpc?: rpc.Server;
+    deployerKeypair?: { publicKey: () => string; sign: (data: Buffer) => Buffer };
+  };
+  if (
+    typeof rawKit.simulateHostFunction !== "function" ||
+    rawKit.rpc === undefined ||
+    rawKit.deployerKeypair === undefined
+  ) {
+    throw new Error("smart-account-kit low-level transaction helpers are unavailable");
+  }
+  const available = await readSacBalance(rawKit.rpc, action.token_contract, account);
+  if (available < amount) {
+    throw new Error(
+      `Smart account ${account} has ${available.toString()} raw units of ${action.token_contract}, ` +
+      `but the transfer needs ${amount.toString()}. Fund the smart account first, then retry.`,
+    );
+  }
+  const hostFn = buildSacTransferFunc(action.token_contract, account, action.recipient, amount);
+  const { authEntries } = await rawKit.simulateHostFunction(hostFn);
+  const signedEntries = [];
+  for (const authEntry of authEntries) {
+    const contextRuleIds = Array.from({ length: countAuthContexts(authEntry) }, () => 0);
+    signedEntries.push(await signKnownWebAuthnAuthEntry(authEntry, {
+      credentialId,
+      publicKeyHex,
+      webauthnVerifierAddress: cfg.webauthn_verifier_address,
+      rpcUrl: cfg.rpc_url,
+      networkPassphrase: cfg.network_passphrase,
+      contextRuleIds,
+    }));
+  }
+  const source = await rawKit.rpc.getAccount(rawKit.deployerKeypair.publicKey());
+  const signedTx = new TransactionBuilder(source, {
+    fee: "1000000",
+    networkPassphrase: cfg.network_passphrase,
+  })
+    .addOperation(Operation.invokeHostFunction({ func: hostFn, auth: signedEntries }))
+    .setTimeout(300)
+    .build();
+  const resim = await rawKit.rpc.simulateTransaction(signedTx);
+  if ("error" in resim) throw new Error(`Token transfer signed re-simulation failed: ${resim.error}`);
+  const prepared = rpc.assembleTransaction(signedTx, resim).build() as Transaction;
+  prepared.sign(rawKit.deployerKeypair as never);
+  return sendAndPollDetailed(rawKit.rpc, prepared, "Token transfer");
 }
 
 async function submitBlendAction(
@@ -341,6 +411,27 @@ async function submitBlendAction(
   const prepared = rpc.assembleTransaction(signedTx, resim).build() as Transaction;
   prepared.sign(rawKit.deployerKeypair as never);
   return sendAndPollDetailed(rawKit.rpc, prepared, "Blend submit");
+}
+
+function buildSacTransferFunc(tokenContract: string, from: string, to: string, amount: bigint): xdr.HostFunction {
+  return xdr.HostFunction.hostFunctionTypeInvokeContract(
+    new xdr.InvokeContractArgs({
+      contractAddress: Address.fromString(tokenContract).toScAddress(),
+      functionName: "transfer",
+      args: [
+        xdr.ScVal.scvAddress(Address.fromString(from).toScAddress()),
+        xdr.ScVal.scvAddress(Address.fromString(to).toScAddress()),
+        toI128(amount),
+      ],
+    }),
+  );
+}
+
+function toI128(amount: bigint): xdr.ScVal {
+  return xdr.ScVal.scvI128(new xdr.Int128Parts({
+    lo: xdr.Uint64.fromString((amount & 0xffff_ffff_ffff_ffffn).toString()),
+    hi: xdr.Int64.fromString((amount >> 64n).toString()),
+  }));
 }
 
 function countAuthContexts(entry: xdr.SorobanAuthorizationEntry): number {
@@ -432,57 +523,9 @@ async function signInstallPlan(): Promise<void> {
       installKnownPasskeySigner(kit, action.owner_credential_id, request.payload.expected_signer.public_key_hint);
     }
 
-    if ((action.policies?.custom?.length ?? 0) > 0) {
-      const submit = await signAndSubmitRawInstall(kit, action, connected.credentialId);
-      if (!submit.success || !submit.hash) {
-        throw new Error(submit.error ?? "Strict install transaction failed");
-      }
-      const step = request.payload.steps[0] ?? { order: 1, step_hash: "install_session_rule" };
-      await postResult({
-        ...resultBase(
-          connected.contractId,
-          connected.credentialId,
-          connected.credential?.publicKey ? bytesToHex(connected.credential.publicKey) : request.payload.expected_signer.public_key_hint,
-        ),
-        signed_steps: [{
-          order: step.order,
-          step_hash: step.step_hash,
-          tx_hash: submit.hash,
-          ledger: submit.ledger,
-        }],
-      });
-      return;
-    }
-
-    const context = createCallContractContext(action.target_contract);
-    const sessionSigner = createEd25519Signer(action.session_signer.verifier, hexToBytes(action.session_signer.public_key_hex));
-    const policies = new Map<string, unknown>();
-    if (action.policies?.simple_threshold) {
-      const policy = action.policies.simple_threshold;
-      policies.set(policy.address, kit.convertPolicyParams("threshold", createThresholdParams(policy.threshold)));
-    }
-    if (action.policies?.spending_limit) {
-      const policy = action.policies.spending_limit;
-      policies.set(policy.address, kit.convertPolicyParams(
-        "spending_limit",
-        createSpendingLimitParams(BigInt(policy.spending_limit_stroops), policy.period_ledgers),
-      ));
-    }
-    for (const policy of action.policies?.custom ?? []) {
-      policies.set(policy.address, xdr.ScVal.fromXDR(policy.params_xdr_b64, "base64"));
-    }
-
-    const tx = await kit.rules.add(
-      context,
-      action.rule_name,
-      [sessionSigner],
-      policies,
-      action.valid_until_ledger,
-    );
-    const submit = await kit.signAndSubmit(tx, {
-      credentialId: connected.credentialId,
-      forceMethod: "rpc",
-    });
+    const credentialId = connected.credentialId ?? action.owner_credential_id ?? request.payload.expected_signer.credential_id;
+    if (!credentialId) throw new Error("Could not determine credential ID");
+    const submit = await signAndSubmitRawInstall(kit, action, credentialId);
     if (!submit.success || !submit.hash) {
       throw new Error(submit.error ?? "Install transaction failed");
     }
@@ -490,7 +533,7 @@ async function signInstallPlan(): Promise<void> {
     await postResult({
       ...resultBase(
         connected.contractId,
-        connected.credentialId,
+        credentialId,
         connected.credential?.publicKey ? bytesToHex(connected.credential.publicKey) : request.payload.expected_signer.public_key_hint,
       ),
       signed_steps: [{
@@ -865,6 +908,15 @@ function parsePositiveBigInt(value: string, label: string): bigint {
     throw new Error(`${label} must be greater than zero`);
   }
   return parsed;
+}
+
+function xlmAmountToStroops(value: number): bigint {
+  if (!Number.isFinite(value) || value <= 0) throw new Error("amount_xlm must be a positive finite number");
+  const [wholeRaw = "0", fracRaw = ""] = value.toString().split(".");
+  if (!/^\d+$/u.test(wholeRaw) || !/^\d*$/u.test(fracRaw) || fracRaw.length > 7) {
+    throw new Error("amount_xlm must have at most 7 fractional digits");
+  }
+  return BigInt(wholeRaw) * 10_000_000n + BigInt(fracRaw.padEnd(7, "0") || "0");
 }
 
 async function postResult(result: unknown): Promise<void> {

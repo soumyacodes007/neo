@@ -36,6 +36,14 @@ export function registerRunSimulationTool(server: McpServer, _context: McpToolCo
           }).optional(),
           harness_manifest_path: z.string().optional(),
           command: z.string().optional(),
+          docker: z.object({
+            image: z.string().optional(),
+            cpus: z.string().optional(),
+            memory: z.string().optional(),
+            network: z.enum(["none", "host"]).optional(),
+            cargo_registry: z.string().optional(),
+            cargo_git: z.string().optional(),
+          }).optional(),
         }).optional(),
       },
     },
@@ -68,6 +76,16 @@ export function registerRunSimulationTool(server: McpServer, _context: McpToolCo
           } : {}),
           ...(input.fork?.harness_manifest_path !== undefined ? { harnessManifestPath: input.fork.harness_manifest_path } : {}),
           ...(input.fork?.command !== undefined ? { command: input.fork.command } : {}),
+          ...(input.fork?.docker !== undefined ? {
+            docker: {
+              ...(input.fork.docker.image !== undefined ? { image: input.fork.docker.image } : {}),
+              ...(input.fork.docker.cpus !== undefined ? { cpus: input.fork.docker.cpus } : {}),
+              ...(input.fork.docker.memory !== undefined ? { memory: input.fork.docker.memory } : {}),
+              ...(input.fork.docker.network !== undefined ? { network: input.fork.docker.network } : {}),
+              ...(input.fork.docker.cargo_registry !== undefined ? { cargoRegistry: input.fork.docker.cargo_registry } : {}),
+              ...(input.fork.docker.cargo_git !== undefined ? { cargoGit: input.fork.docker.cargo_git } : {}),
+            },
+          } : {}),
         })
         : {
           engine: "unit",

@@ -1,10 +1,10 @@
 {
   "schema_version": "1",
   "test_id": "phase8.composed-policy-install",
-  "created_at": "2026-07-08T21:06:42.782Z",
+  "created_at": "2026-07-09T18:54:57.329Z",
   "network": "testnet",
   "rpc_url": "https://soroban-testnet.stellar.org",
-  "plan_hash": "62cf9b6cc36c1c2c74547b48c1ae04d5af5d05cec5678fb026ab82df6ad6cec3",
+  "plan_hash": "78f36c1b1942400699fabeedd5c795ed848bf21882c50fa0f494189e20a18382",
   "account": "CBKK43WTYYG3CZT4PKCDQDYRVI4RLOJ7MM2BBGPN7W4YTEJEFQBO4TXM",
   "wallet": {
     "sdk": "smart-account-kit",
@@ -14,21 +14,21 @@
     "public_key_hint": "04a81b100972bb28acd11e8fdb187d5a0e1b90060b4f2c4e53ea40c64814ca5ac598e876a53d314b38a14bb8f6e5db8e4bd7570b2e7a531876889c85b431aada8c"
   },
   "transaction": {
-    "hash": "17556ede671bc3f377ecbb79349e16694d35e72e63210b75be246e84ca3f25a1",
-    "ledger": 3505807,
+    "hash": "c2a8232a780ecc2364f563a98da24bc3a7b5994552e7f6454c0b7633b62631bf",
+    "ledger": 3521480,
     "source": "browser_submitted"
   },
   "readback": {
-    "before_rule_count": 4,
-    "after_rule_count": 5,
+    "before_rule_count": 6,
+    "after_rule_count": 7,
     "installed_rule": {
-      "id": 4,
-      "name": "ozpb-composed-4",
+      "id": 6,
+      "name": "ozpb-composed-6",
       "context_type": {
         "kind": "call_contract",
         "address": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
       },
-      "valid_until_ledger": 3506522,
+      "valid_until_ledger": 3522196,
       "signers": [
         {
           "signer": {
@@ -64,11 +64,11 @@
       "privilege": "scoped",
       "status": "active"
     },
-    "snapshot_hash": "c88a87f9e3e3503e46be2654f0339941eea189891ba46eef04eb0bd35df35367"
+    "snapshot_hash": "8be2c50d66b6a62cb70917230a6d1b3a5404bc7321c63e993f7b278fffcb75e1"
   },
   "trace": {
-    "tx_hash": "17556ede671bc3f377ecbb79349e16694d35e72e63210b75be246e84ca3f25a1",
-    "ledger": 3505807,
+    "tx_hash": "c2a8232a780ecc2364f563a98da24bc3a7b5994552e7f6454c0b7633b62631bf",
+    "ledger": 3521480,
     "successful": true,
     "auth_entries": 1
   },

@@ -19,7 +19,18 @@ export function registerCompileGeneratedPolicyTool(server: McpServer, _context: 
       const compile = await new NativeCargoSandbox({ timeoutMs: input.timeout_ms }).compilePolicy(input.crate_path);
       return {
         compile,
-        next_step: compile.ok ? "run real allow/deny simulation before install" : "repair only inside GENERATED markers, then compile again",
+        deployment_allowed: false,
+        repair_loop: {
+          max_attempts: 3,
+          allowed_edit_scope: "only between // >>> GENERATED: ... and // <<< GENERATED markers",
+          frozen_template_edits_allowed: false,
+          diagnostic_count: compile.diagnostics.length,
+          errors: compile.diagnostics.filter((d) => d.level === "error").slice(0, 20),
+        },
+        next_tool: compile.ok ? "ozpb_review_generated_policy" : "ozpb_generate_custom_policy_code or manual fenced repair, then ozpb_compile_generated_policy",
+        next_step: compile.ok
+          ? "pass this compile result plus a real simulation report hash to ozpb_review_generated_policy"
+          : "repair only inside GENERATED markers, then compile again",
       };
     }),
   );

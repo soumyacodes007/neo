@@ -10,6 +10,7 @@ import {
   SMART_ACCOUNT_KIT_TESTNET_DEFAULTS,
   WalletBridge,
 } from "../packages/wallet-bridge/dist/index.js";
+import { registerOzpbTools } from "../packages/mcp-server/dist/register-tools.js";
 import {
   InMemoryRegistry,
   RpcClient,
@@ -180,69 +181,67 @@ await fs.writeFile(planPath, `${JSON.stringify(plan, null, 2)}\n`);
 
 const bridge = new WalletBridge();
 try {
-  const approval = await bridge.createSigningRequest({
-    kind: "sign_install_plan",
+  const tools = new Map();
+  registerOzpbTools({ registerTool(name, _config, handler) { tools.set(name, handler); } }, { bridge });
+  const approval = await callTool(tools, "ozpb_install_policy", {
     network: "testnet",
-    plan_hash: planHash,
     account,
-    payload: {
-      human_summary_markdown: [
-        `Install composed policy rule "${ruleName}" on ${account}.`,
-        `Target: ${walletKit.native_token_contract}.`,
-        `Allows session-key transfer to ${recipient} up to ${amountStroops} stroops until ledger ${String(validUntil)}.`,
-      ].join("\n"),
-      policy_diff_markdown: policies
-        .map((policy) => `Attach ${policy.classification} at ${policy.address}.`)
-        .join("\n"),
-      risk_summary_markdown: "This is a real testnet add_context_rule. The owner passkey signs once; matching transfers use the Ed25519 session key.",
-      wallet_kit: walletKit,
-      install_action: {
-        kind: "session_rule",
-        account,
-        owner_credential_id: ownerCredentialId,
-        target_contract: plan.target_contract,
-        rule_name: ruleName,
-        valid_until_ledger: validUntil,
-        session_signer: {
-          verifier: walletKit.ed25519_verifier_address,
-          public_key_hex: session.public_key_hex,
-        },
-        policies: {
-          spending_limit: {
-            address: walletKit.spending_limit_policy_address,
-            spending_limit_stroops: amountStroops,
-            period_ledgers: periodLedgers,
-          },
-          custom: policies
-            .filter((policy) => policy.classification.startsWith("pb:"))
-            .map((policy) => ({
-              address: policy.address,
-              classification: policy.classification,
-              params_xdr_b64: policy.params_xdr_b64,
-            })),
-        },
+    plan_hash: planHash,
+    human_summary_markdown: [
+      `Install composed policy rule "${ruleName}" on ${account}.`,
+      `Target: ${walletKit.native_token_contract}.`,
+      `Allows session-key transfer to ${recipient} up to ${amountStroops} stroops until ledger ${String(validUntil)}.`,
+    ].join("\n"),
+    policy_diff_markdown: policies
+      .map((policy) => `Attach ${policy.classification} at ${policy.address}.`)
+      .join("\n"),
+    risk_summary_markdown: "This is a real testnet add_context_rule. The owner passkey signs once; matching transfers use the Ed25519 session key.",
+    wallet_kit: walletKit,
+    owner_credential_id: ownerCredentialId,
+    owner_public_key_hint: walletFixture.approval?.wallet?.public_key_hint,
+    install_action: {
+      kind: "session_rule",
+      account,
+      owner_credential_id: ownerCredentialId,
+      target_contract: plan.target_contract,
+      rule_name: ruleName,
+      valid_until_ledger: validUntil,
+      session_signer: {
+        verifier: walletKit.ed25519_verifier_address,
+        public_key_hex: session.public_key_hex,
       },
-      expected_signer: {
-        account,
-        signer_kind: "webauthn",
-        verifier: walletKit.webauthn_verifier_address,
-        public_key_hint: walletFixture.approval?.wallet?.public_key_hint,
+      policies: {
+        spending_limit: {
+          address: walletKit.spending_limit_policy_address,
+          spending_limit_stroops: amountStroops,
+          period_ledgers: periodLedgers,
+        },
+        custom: policies
+          .filter((policy) => policy.classification.startsWith("pb:"))
+          .map((policy) => ({
+            address: policy.address,
+            classification: policy.classification,
+            params_xdr_b64: policy.params_xdr_b64,
+          })),
       },
-      steps: [{
-        order: 1,
-        step_hash: `install_composed_rule:${planHash.slice(0, 24)}`,
-        unsigned_xdr: "smart-account-kit:raw:add_context_rule:spending_limit+pb",
-        description: "Browser passkey signs and submits composed add_context_rule.",
-        network_passphrase: walletKit.network_passphrase,
-        auth_requirements: [],
-      }],
     },
+    steps: [{
+      order: 1,
+      step_hash: `install_composed_rule:${planHash.slice(0, 24)}`,
+      unsigned_xdr: "smart-account-kit:raw:add_context_rule:spending_limit+pb",
+      description: "Browser passkey signs and submits composed add_context_rule.",
+      network_passphrase: walletKit.network_passphrase,
+      auth_requirements: [],
+    }],
   });
 
   console.log(`Open approval URL:\n${approval.approval_url}\n`);
   if (process.env.OPEN_BROWSER !== "false") openBrowser(approval.approval_url);
 
-  const completed = await bridge.waitForResult(approval.sid, Number(process.env.PHASE8_DEMO_TIMEOUT_MS ?? 10 * 60 * 1000));
+  const completed = await callTool(tools, "ozpb_await_wallet_result", {
+    sid: approval.sid,
+    timeout_ms: Number(process.env.PHASE8_DEMO_TIMEOUT_MS ?? 10 * 60 * 1000),
+  });
   if (completed.status !== "completed" || !completed.result) {
     throw new Error(`approval ended with status ${completed.status}`);
   }
@@ -299,6 +298,15 @@ try {
   process.exitCode = 1;
 } finally {
   await bridge.stop();
+}
+
+async function callTool(tools, name, input) {
+  const handler = tools.get(name);
+  if (!handler) throw new Error(`tool ${name} is not registered`);
+  const response = await handler(input);
+  const body = JSON.parse(response.content?.[0]?.text ?? "{}");
+  if (body.ok !== true) throw new Error(`${name} failed: ${JSON.stringify(body)}`);
+  return body.result;
 }
 
 async function inspect(accountId, client) {

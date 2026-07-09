@@ -155,12 +155,13 @@ fn run(input: HarnessInput) -> HarnessOutput {
     let rule = context_rule(&e, &input.rule);
     install_policies(&e, &hosts, &input.policies, &rule, &account);
 
-    let base_ledger = e.ledger().sequence();
+    let base_ledger = input.rule.valid_until.unwrap_or_else(|| e.ledger().sequence());
     let mut cases = std::vec::Vec::new();
     for case in &input.cases {
         e.ledger().set_sequence_number(base_ledger.saturating_add(case.ledger_offset));
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let context = contract_context(&e, &case.context);
+            enforce_context_rule(&e, &context, &rule);
             let signers = signer_vec(&e, case.signer_set.len());
             enforce_policies(&e, &hosts, &input.policies, &context, &signers, &rule, &account);
         }));
@@ -214,6 +215,20 @@ fn enforce_policies(e: &Env, hosts: &[Address], policies: &[PolicyInput], contex
             PolicyInput::CallCap { .. } => e.as_contract(host, || stellar_pb_call_cap::enforce(e, context, signers, rule, account)),
             PolicyInput::RateLimit { .. } => e.as_contract(host, || stellar_pb_rate_limit::enforce(e, context, signers, rule, account)),
         }
+    }
+}
+
+fn enforce_context_rule(e: &Env, context: &Context, rule: &ContextRule) {
+    if let Some(valid_until) = rule.valid_until {
+        if e.ledger().sequence() > valid_until {
+            panic!("#3013 context rule expired")
+        }
+    }
+
+    match (&rule.context_type, context) {
+        (ContextRuleType::CallContract(target), Context::Contract(ContractContext { contract, .. })) if contract == target => {}
+        (ContextRuleType::CallContract(_), _) => panic!("#3303 context contract not allowed"),
+        _ => panic!("#3303 context type not allowed"),
     }
 }
 

@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { submitSignedXdr } from "@ozpb/stellar";
-import { SMART_ACCOUNT_KIT_TESTNET_DEFAULTS } from "@ozpb/wallet-bridge";
+import { SMART_ACCOUNT_KIT_TESTNET_DEFAULTS, type WalletInstallAction } from "@ozpb/wallet-bridge";
 import { withToolBoundary } from "../tool-boundary.js";
-import { NetworkSchema, WalletKitConfigSchema, type McpToolContext } from "./types.js";
+import { InstallActionSchema, NetworkSchema, WalletKitConfigSchema, type McpToolContext } from "./types.js";
 import { SigningStepSchema } from "./product-flow-shared.js";
 
 const testnetDefaults = SMART_ACCOUNT_KIT_TESTNET_DEFAULTS;
@@ -22,6 +22,9 @@ export function registerInstallPolicyTool(server: McpServer, context: McpToolCon
         policy_diff_markdown: z.string(),
         risk_summary_markdown: z.string(),
         wallet_kit: WalletKitConfigSchema.optional(),
+        install_action: InstallActionSchema.optional(),
+        owner_credential_id: z.string().optional(),
+        owner_public_key_hint: z.string().regex(/^[0-9a-f]+$/iu).optional(),
         steps: z.array(SigningStepSchema).optional(),
         signed_xdr: z.string().optional(),
         rpc_url: z.string().url().default(testnetDefaults.rpc_url),
@@ -38,6 +41,16 @@ export function registerInstallPolicyTool(server: McpServer, context: McpToolCon
           }),
         };
       }
+      const installAction: WalletInstallAction | undefined = input.install_action === undefined
+        ? undefined
+        : {
+          ...input.install_action,
+          ...(input.owner_credential_id !== undefined
+            ? { owner_credential_id: input.owner_credential_id }
+            : input.install_action.owner_credential_id !== undefined
+              ? { owner_credential_id: input.install_action.owner_credential_id }
+              : {}),
+        } as WalletInstallAction;
       return context.bridge.createSigningRequest({
         kind: "sign_install_plan",
         network: input.network,
@@ -48,7 +61,13 @@ export function registerInstallPolicyTool(server: McpServer, context: McpToolCon
           policy_diff_markdown: input.policy_diff_markdown,
           risk_summary_markdown: input.risk_summary_markdown,
           ...(input.wallet_kit !== undefined ? { wallet_kit: input.wallet_kit } : {}),
-          expected_signer: { signer_kind: "webauthn", ...(input.account !== undefined ? { account: input.account } : {}) },
+          ...(installAction !== undefined ? { install_action: installAction } : {}),
+          expected_signer: {
+            signer_kind: "webauthn",
+            ...(input.account !== undefined ? { account: input.account } : {}),
+            ...(input.owner_credential_id !== undefined ? { credential_id: input.owner_credential_id } : {}),
+            ...(input.owner_public_key_hint !== undefined ? { public_key_hint: input.owner_public_key_hint } : {}),
+          },
           steps: input.steps ?? [],
         },
       });
